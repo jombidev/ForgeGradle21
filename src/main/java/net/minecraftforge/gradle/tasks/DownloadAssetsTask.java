@@ -41,6 +41,8 @@ import net.minecraftforge.gradle.util.json.version.AssetIndex;
 import net.minecraftforge.gradle.util.json.version.AssetIndex.AssetEntry;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +95,7 @@ public class DownloadAssetsTask extends DefaultTask {
         }
     }
 
+    @InputDirectory
     public File getAssetsDir() {
         return assetsDir.call();
     }
@@ -101,6 +104,7 @@ public class DownloadAssetsTask extends DefaultTask {
         this.assetsDir = assetsDir;
     }
 
+    @InputFile
     public File getAssetsIndex() {
         return getProject().file(assetIndex);
     }

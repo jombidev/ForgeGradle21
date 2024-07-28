@@ -23,7 +23,6 @@ import org.gradle.api.Project;
 
 import java.io.File;
 
-@SuppressWarnings("serial")
 public class DelayedFile extends DelayedBase<File> {
     protected final File hardcoded;
     protected transient final Project project;
