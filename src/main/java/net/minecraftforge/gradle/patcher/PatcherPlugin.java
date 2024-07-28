@@ -41,7 +41,6 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.bundling.Zip;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -49,7 +48,6 @@ import java.util.Set;
 import static net.minecraftforge.gradle.common.Constants.*;
 import static net.minecraftforge.gradle.patcher.PatcherConstants.*;
 
-@SuppressWarnings("CallToPrintStackTrace")
 public class PatcherPlugin extends BasePlugin<PatcherExtension> {
     @Override
     public void applyPlugin() {
@@ -805,24 +803,6 @@ public class PatcherPlugin extends BasePlugin<PatcherExtension> {
         // PACKAGING
 
         PatcherProject patcher = patchersList.get(patchersList.size() - 1);
-
-        CreateStartTask makeProperties = makeTask(projectString(TASK_PROJECT_MAKE_PROPERTIES, patcher), CreateStartTask.class);
-        {
-            makeProperties.addResource("net/minecraftforge/gradle/version/ProjectVersion.java");
-            makeProperties.addReplacement("@@PROJECT_VERSION@@", project.getVersion().toString());
-            makeProperties.addReplacement("@@GIT_BRANCH@@", "unknown");
-            makeProperties.setStartOut(subWorkspace(patcher.getCapName() + DIR_EXTRACTED_START));
-            makeProperties.setDoesCache(false);
-            makeProperties.getOutputs().upToDateWhen(CALL_FALSE); //TODO: Abrar, Fix this...
-        }
-
-        project.afterEvaluate(project1 -> {
-            try {
-                makeProperties.doStuff();
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
-        });
 
         TaskReobfuscate reobf = (TaskReobfuscate) project.getTasks().getByName(TASK_REOBFUSCATE);
         reobf.setInJar(delayedFile(projectString(JAR_PROJECT_RECOMPILED, patcher)));

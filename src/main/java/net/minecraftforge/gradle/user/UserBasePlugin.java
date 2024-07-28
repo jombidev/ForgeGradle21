@@ -312,25 +312,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
             recompile.dependsOn(remap, TASK_DL_VERSION_JSON);
         }
 
-
-        CreateStartTask makeProperties = makeTask(TASK_MAKE_PROPERTIES, CreateStartTask.class);
-        {
-            makeProperties.addResource("net/minecraftforge/gradle/version/ProjectVersion.java");
-            makeProperties.addReplacement("@@PROJECT_VERSION@@", project.getVersion().toString());
-            makeProperties.addReplacement("@@GIT_BRANCH@@", "unknown");
-            makeProperties.setStartOut(getStartDir());
-            makeProperties.setDoesCache(false);
-            makeProperties.getOutputs().upToDateWhen(CALL_FALSE); //TODO: Abrar, Fix this...
-        }
-
-        project.afterEvaluate(project1 -> {
-            try {
-                makeProperties.doStuff();
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
-        });
-
         // create GradleStart
         final CreateStartTask makeStart = makeTask(TASK_MAKE_START, CreateStartTask.class);
         {
