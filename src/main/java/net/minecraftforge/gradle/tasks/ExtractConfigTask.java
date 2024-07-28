@@ -42,12 +42,12 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
     @Input
     private String config;
 
-    @Input
+//    @Input
     private final PatternSet patternSet = new PatternSet();
 
-    public PatternSet getPatternSet() {
-        return patternSet;
-    }
+//    public PatternSet getPatternSet() {
+//        return patternSet;
+//    }
 
     @Input
     private boolean includeEmptyDirs = true;

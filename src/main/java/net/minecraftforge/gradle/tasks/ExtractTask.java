@@ -43,7 +43,7 @@ public class ExtractTask extends CachedTask implements PatternFilterable {
     @InputFiles
     private final LinkedHashSet<Object> sourcePaths = new LinkedHashSet<>();
 
-    @Input
+//    @Input
     private final PatternSet patternSet = new PatternSet();
 
     @Input

@@ -45,12 +45,12 @@ public class SplitJarTask extends CachedTask implements PatternFilterable {
     @InputFile
     private Object inJar;
 
-    @Input
+//    @Input
     private final PatternSet pattern = new PatternSet();
 
-    public PatternSet getPattern() {
-        return pattern;
-    }
+//    public PatternSet getPattern() {
+//        return pattern;
+//    }
 
     @Cached
     @OutputFile
