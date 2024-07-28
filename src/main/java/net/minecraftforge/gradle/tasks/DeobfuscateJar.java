@@ -324,6 +324,7 @@ public class DeobfuscateJar extends CachedTask {
         this.failOnAtError = failOnAtError;
     }
 
+    @Internal
     public File getInJar() {
         return getProject().file(inJar);
     }
@@ -332,6 +333,7 @@ public class DeobfuscateJar extends CachedTask {
         this.inJar = inJar;
     }
 
+    @Internal
     public File getLog() {
         if (log == null)
             return null;
@@ -372,6 +374,7 @@ public class DeobfuscateJar extends CachedTask {
      *
      * @return Object that will resolve to
      */
+    @Internal
     public Closure<File> getDelayedOutput() {
         return new Closure<File>(DeobfuscateJar.class) {
             public File call() {
