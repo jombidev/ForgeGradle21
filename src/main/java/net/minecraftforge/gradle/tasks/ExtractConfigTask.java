@@ -59,7 +59,7 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
     public void doTask() throws IOException {
         File dest = getDestinationDir();
 
-        if (shouldClean()) {
+        if (getClean()) {
             delete(dest);
         }
 
@@ -116,7 +116,7 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
         return false;
     }
 
-    public boolean shouldClean() {
+    public boolean getClean() { // proper getter is needed
         return clean;
     }
 
@@ -144,11 +144,13 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
         return patternSet.exclude(arg0);
     }
 
+    @Internal
     @Override
     public Set<String> getExcludes() {
         return patternSet.getExcludes();
     }
 
+    @Internal
     @Override
     public Set<String> getIncludes() {
         return patternSet.getIncludes();
@@ -174,11 +176,13 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
         return patternSet.include(arg0);
     }
 
+    @Internal
     @Override
     public PatternFilterable setExcludes(Iterable<String> arg0) {
         return patternSet.setExcludes(arg0);
     }
 
+    @Internal
     @Override
     public PatternFilterable setIncludes(Iterable<String> arg0) {
         return patternSet.setIncludes(arg0);
