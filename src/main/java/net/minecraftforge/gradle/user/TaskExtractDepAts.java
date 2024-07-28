@@ -38,8 +38,8 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 public class TaskExtractDepAts extends DefaultTask {
-    @Input
     private final List<String> configurations = Lists.newArrayList();
+
     @OutputDirectory
     private Object outputDir;
 
