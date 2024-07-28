@@ -58,27 +58,13 @@ public class GenSrgs extends CachedTask {
     private DelayedFile methodsCsv;
     @InputFile
     private DelayedFile fieldsCsv;
-    @Cached
-    @OutputFile
     private DelayedFile notchToSrg;
-    @Cached
-    @OutputFile
     private DelayedFile notchToMcp;
-    @Cached
-    @OutputFile
     private DelayedFile mcpToNotch;
-    @Cached
-    @OutputFile
-    private DelayedFile SrgToMcp;
-    @Cached
-    @OutputFile
+    private DelayedFile srgToMcp;
     private DelayedFile mcpToSrg;
     //@formatter:on
-    @Cached
-    @OutputFile
     private DelayedFile srgExc;
-    @Cached
-    @OutputFile
     private DelayedFile mcpExc;
 
     private static void readCSVs(File methodCsv, File fieldCsv, Map<String, String> methodMap, Map<String, String> fieldMap) throws IOException {
@@ -399,6 +385,8 @@ public class GenSrgs extends CachedTask {
         this.fieldsCsv = fieldsCsv;
     }
 
+    @Cached
+    @OutputFile
     public File getNotchToSrg() {
         return notchToSrg.call();
     }
@@ -407,6 +395,8 @@ public class GenSrgs extends CachedTask {
         this.notchToSrg = deobfSrg;
     }
 
+    @Cached
+    @OutputFile
     public File getNotchToMcp() {
         return notchToMcp.call();
     }
@@ -415,14 +405,18 @@ public class GenSrgs extends CachedTask {
         this.notchToMcp = deobfSrg;
     }
 
+    @Cached
+    @OutputFile
     public File getSrgToMcp() {
-        return SrgToMcp.call();
+        return srgToMcp.call();
     }
 
     public void setSrgToMcp(DelayedFile deobfSrg) {
-        this.SrgToMcp = deobfSrg;
+        this.srgToMcp = deobfSrg;
     }
 
+    @Cached
+    @OutputFile
     public File getMcpToSrg() {
         return mcpToSrg.call();
     }
@@ -431,6 +425,8 @@ public class GenSrgs extends CachedTask {
         this.mcpToSrg = reobfSrg;
     }
 
+    @Cached
+    @OutputFile
     public File getMcpToNotch() {
         return mcpToNotch.call();
     }
@@ -439,6 +435,8 @@ public class GenSrgs extends CachedTask {
         this.mcpToNotch = reobfSrg;
     }
 
+    @Cached
+    @OutputFile
     public File getSrgExc() {
         return srgExc.call();
     }
@@ -447,6 +445,8 @@ public class GenSrgs extends CachedTask {
         this.srgExc = inSrg;
     }
 
+    @Cached
+    @OutputFile
     public File getMcpExc() {
         return mcpExc.call();
     }
