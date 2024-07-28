@@ -40,7 +40,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.services.DefaultLoggingManager;
@@ -57,13 +56,10 @@ import com.google.common.io.Files;
 import com.google.common.io.Resources;
 
 public class CreateStartTask extends CachedTask {
-    @Input
     HashMap<String, String> resources = Maps.newHashMap();
 
-    @Input
     HashMap<String, Object> replacements = Maps.newHashMap();
 
-    @Input
     List<String> extraLines = Lists.newArrayList();
 
     @Cached

@@ -24,9 +24,7 @@ import groovy.lang.Closure;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 
 import net.minecraftforge.gradle.common.Constants;
 
@@ -54,8 +52,8 @@ public class EtagDownloadTask extends DefaultTask {
     }
 
     @TaskAction
-    public void doTask() throws IOException {
-        URL url = getUrl();
+    public void doTask() throws IOException, URISyntaxException {
+        URL url = getUrl().toURL();
         File outFile = getFile();
         File etagFile = getProject().file(getFile().getPath() + ".etag");
 
@@ -120,12 +118,12 @@ public class EtagDownloadTask extends DefaultTask {
     }
 
     @SuppressWarnings("rawtypes")
-    public URL getUrl() throws MalformedURLException {
+    public URI getUrl() throws URISyntaxException {
         while (url instanceof Closure) {
             url = ((Closure) url).call();
         }
 
-        return new URL(url.toString());
+        return new URI(url.toString());
     }
 
     public void setUrl(Object url) {
