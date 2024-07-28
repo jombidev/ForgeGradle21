@@ -39,7 +39,6 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 public class TaskExtractDepAts extends DefaultTask {
-    @Internal
     private final List<String> configurations = Lists.newArrayList();
 
     @OutputDirectory
@@ -93,6 +92,7 @@ public class TaskExtractDepAts extends DefaultTask {
         }
     }
 
+    @Internal
     public FileCollection getCollections() {
         List<Configuration> configs = Lists.newArrayListWithCapacity(configurations.size());
         for (String s : configurations)
