@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -80,7 +81,6 @@ public class ApplyFernFlowerTask extends CachedTask {
         mapOptions.put(IFernflowerPreferences.DECOMPILE_GENERIC_SIGNATURES, "1");
         mapOptions.put(IFernflowerPreferences.ASCII_STRING_CHARACTERS, "1");
         mapOptions.put(IFernflowerPreferences.INCLUDE_ENTIRE_CLASSPATH, "1");
-        mapOptions.put(IFernflowerPreferences.DECOMPILE_GENERIC_SIGNATURES, "1");
         mapOptions.put(IFernflowerPreferences.REMOVE_SYNTHETIC, "1");
         mapOptions.put(IFernflowerPreferences.REMOVE_BRIDGE, "1");
         mapOptions.put(IFernflowerPreferences.LITERALS_AS_IS, "0");
@@ -125,7 +125,7 @@ public class ApplyFernFlowerTask extends CachedTask {
     }
 
     public static class AdvancedJadRenamer extends JADNameProvider {
-        private StructMethod wrapper;
+        private final StructMethod wrapper;
         private static final Pattern p = Pattern.compile("func_(\\d+)_.*");
 
         public AdvancedJadRenamer(StructMethod wrapper) {
@@ -166,9 +166,9 @@ public class ApplyFernFlowerTask extends CachedTask {
         }
     }
 
-    class ArtifactSaver implements IResultSaver {
-        private final Map<String, ZipOutputStream> mapArchiveStreams = new HashMap<String, ZipOutputStream>();
-        private final Map<String, Set<String>> mapArchiveEntries = new HashMap<String, Set<String>>();
+    static class ArtifactSaver implements IResultSaver {
+        private final Map<String, ZipOutputStream> mapArchiveStreams = new HashMap<>();
+        private final Map<String, Set<String>> mapArchiveEntries = new HashMap<>();
         private final File root;
 
         public ArtifactSaver(File tempDir) {
@@ -200,13 +200,8 @@ public class ApplyFernFlowerTask extends CachedTask {
         @Override
         public void saveClassFile(String path, String qualifiedName, String entryName, String content, int[] mapping) {
             File file = new File(getAbsolutePath(path), entryName);
-            try {
-                Writer out = new OutputStreamWriter(new FileOutputStream(file), "UTF8");
-                try {
-                    out.write(content);
-                } finally {
-                    out.close();
-                }
+            try (Writer out = new OutputStreamWriter(Files.newOutputStream(file.toPath()), StandardCharsets.UTF_8)) {
+                out.write(content);
             } catch (IOException ex) {
                 DecompilerContext.getLogger().writeMessage("Cannot write class file " + file, ex);
             }

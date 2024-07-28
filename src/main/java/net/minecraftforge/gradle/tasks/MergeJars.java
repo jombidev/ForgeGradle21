@@ -19,47 +19,31 @@
  */
 package net.minecraftforge.gradle.tasks;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
-
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskAction;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.AnnotationNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.InnerClassNode;
-
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
-
 import groovy.lang.Closure;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.gradle.util.caching.Cached;
 import net.minecraftforge.gradle.util.caching.CachedTask;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.TaskAction;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.*;
+
+import java.io.*;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 public class MergeJars extends CachedTask {
     @InputFile
@@ -83,31 +67,12 @@ public class MergeJars extends CachedTask {
     }
 
     private void processJar(File clientInFile, File serverInFile, File outFile) throws IOException {
-        ZipFile cInJar = null;
-        ZipFile sInJar = null;
-        ZipOutputStream outJar = null;
-
-        try {
-            try {
-                cInJar = new ZipFile(clientInFile);
-                sInJar = new ZipFile(serverInFile);
-            } catch (FileNotFoundException e) {
-                throw new FileNotFoundException("Could not open input file: " + e.getMessage());
-            }
-
-            // different messages.
-
-            try {
-                outJar = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outFile)));
-            } catch (FileNotFoundException e) {
-                throw new FileNotFoundException("Could not open output file: " + e.getMessage());
-            }
-
+        try (ZipFile cInJar = new ZipFile(clientInFile); ZipFile sInJar = new ZipFile(serverInFile); ZipOutputStream outJar = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outFile)))) {
             // read in the jars, and initalize some variables
-            HashSet<String> resources = new HashSet<String>();
+            HashSet<String> resources = new HashSet<>();
             HashMap<String, ZipEntry> cClasses = getClassEntries(cInJar, outJar, resources);
             HashMap<String, ZipEntry> sClasses = getClassEntries(sInJar, outJar, resources);
-            HashSet<String> cAdded = new HashSet<String>();
+            HashSet<String> cAdded = new HashSet<>();
 
             // start processing
             for (Entry<String, ZipEntry> entry : cClasses.entrySet()) {
@@ -149,27 +114,8 @@ public class MergeJars extends CachedTask {
                 }
             }
 
-        } finally {
-            if (cInJar != null) {
-                try {
-                    cInJar.close();
-                } catch (IOException e) {
-                }
-            }
-
-            if (sInJar != null) {
-                try {
-                    sInJar.close();
-                } catch (IOException e) {
-                }
-            }
-            if (outJar != null) {
-                try {
-                    outJar.close();
-                } catch (IOException e) {
-                }
-            }
-
+        } catch (FileNotFoundException e) {
+            throw new FileNotFoundException("Could not open input / output file: " + e.getMessage());
         }
     }
 
@@ -180,7 +126,7 @@ public class MergeJars extends CachedTask {
         reader.accept(classNode, 0);
 
         if (classNode.visibleAnnotations == null) {
-            classNode.visibleAnnotations = new ArrayList<AnnotationNode>();
+            classNode.visibleAnnotations = new ArrayList<>();
         }
         classNode.visibleAnnotations.add(getSideAnn(isClientOnly));
 
@@ -201,7 +147,7 @@ public class MergeJars extends CachedTask {
 
     private AnnotationNode getSideAnn(boolean isClientOnly) {
         AnnotationNode ann = new AnnotationNode(Type.getDescriptor(sideOnlyClass));
-        ann.values = new ArrayList<Object>();
+        ann.values = new ArrayList<>();
         ann.values.add("value");
         ann.values.add(new String[]{Type.getDescriptor(sideClass), isClientOnly ? "CLIENT" : "SERVER"});
         return ann;
@@ -212,10 +158,10 @@ public class MergeJars extends CachedTask {
      * @param outFile   The place to write resources and ignored classes
      * @param resources The registry to add resources to, and to check against.
      * @return HashMap of all the desired Classes and their ZipEntrys
-     * @throws IOException
+     * @throws IOException file IO errors
      */
     private HashMap<String, ZipEntry> getClassEntries(ZipFile inFile, ZipOutputStream outFile, HashSet<String> resources) throws IOException {
-        HashMap<String, ZipEntry> ret = new HashMap<String, ZipEntry>();
+        HashMap<String, ZipEntry> ret = new HashMap<>();
 
         for (ZipEntry entry : Collections.list(inFile.entries())) {
             String entryName = entry.getName();
@@ -249,14 +195,8 @@ public class MergeJars extends CachedTask {
 
     private byte[] getClassBytes(String name) throws IOException {
         // @TODO: rewrite.
-        InputStream classStream = null;
-        try {
-            classStream = MergeJars.class.getResourceAsStream("/" + name.replace('.', '/').concat(".class"));
+        try (InputStream classStream = MergeJars.class.getResourceAsStream("/" + name.replace('.', '/').concat(".class"))) {
             return ByteStreams.toByteArray(classStream);
-        } finally {
-            if (classStream != null) {
-                classStream.close();
-            }
         }
     }
 
@@ -279,8 +219,7 @@ public class MergeJars extends CachedTask {
         if (o.name == null && o2.name != null) return false;
         if (o.name != null && !o.name.equals(o2.name)) return false;
         if (o.outerName == null && o2.outerName != null) return false;
-        if (o.outerName != null && o.outerName.equals(o2.outerName)) return false;
-        return true;
+        return o.outerName == null || !o.outerName.equals(o2.outerName);
     }
 
     private static boolean contains(List<InnerClassNode> list, InnerClassNode node) {
@@ -341,7 +280,7 @@ public class MergeJars extends CachedTask {
                         }
                         if (!foundClientField) {
                             if (serverField.visibleAnnotations == null) {
-                                serverField.visibleAnnotations = new ArrayList<AnnotationNode>();
+                                serverField.visibleAnnotations = new ArrayList<>();
                             }
                             serverField.visibleAnnotations.add(getSideAnn(false));
                             cFields.add(clientFieldIdx, serverField);
@@ -350,7 +289,7 @@ public class MergeJars extends CachedTask {
                         }
                     } else {
                         if (clientField.visibleAnnotations == null) {
-                            clientField.visibleAnnotations = new ArrayList<AnnotationNode>();
+                            clientField.visibleAnnotations = new ArrayList<>();
                         }
                         clientField.visibleAnnotations.add(getSideAnn(true));
                         sFields.add(serverFieldIdx, clientField);
@@ -360,7 +299,7 @@ public class MergeJars extends CachedTask {
                 }
             } else {
                 if (clientField.visibleAnnotations == null) {
-                    clientField.visibleAnnotations = new ArrayList<AnnotationNode>();
+                    clientField.visibleAnnotations = new ArrayList<>();
                 }
                 clientField.visibleAnnotations.add(getSideAnn(true));
                 sFields.add(serverFieldIdx, clientField);
@@ -375,7 +314,7 @@ public class MergeJars extends CachedTask {
             for (int x = cFields.size(); x < sFields.size(); x++) {
                 FieldNode sF = sFields.get(x);
                 if (sF.visibleAnnotations == null) {
-                    sF.visibleAnnotations = new ArrayList<AnnotationNode>();
+                    sF.visibleAnnotations = new ArrayList<>();
                 }
                 sF.visibleAnnotations.add(getSideAnn(true));
                 cFields.add(x++, sF);
@@ -458,9 +397,7 @@ public class MergeJars extends CachedTask {
             }
             cMethods.add(mw.node);
             sMethods.add(mw.node);
-            if (mw.server && mw.client) {
-                // no op
-            } else {
+            if (!mw.server || !mw.client) {
                 if (mw.node.visibleAnnotations == null) {
                     mw.node.visibleAnnotations = Lists.newArrayListWithExpectedSize(1);
                 }
@@ -470,8 +407,8 @@ public class MergeJars extends CachedTask {
         }
     }
 
-    private class MethodWrapper {
-        private MethodNode node;
+    private static class MethodWrapper {
+        private final MethodNode node;
         public boolean client;
         public boolean server;
 
@@ -481,7 +418,7 @@ public class MergeJars extends CachedTask {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == null || !(obj instanceof MethodWrapper)) {
+            if (!(obj instanceof MethodWrapper)) {
                 return false;
             }
             MethodWrapper mw = (MethodWrapper) obj;

@@ -137,8 +137,8 @@ final class PatcherConstants {
     static final String TASK_PROJECT_RUNE_SERVER = "makeEclipse" + REPLACE_PROJECT_CAP_NAME + "RunServer";
     static final String TASK_PROJECT_RUNJ_CLIENT = "makeIdea" + REPLACE_PROJECT_CAP_NAME + "RunClient";
     static final String TASK_PROJECT_RUNJ_SERVER = "makeIdea" + REPLACE_PROJECT_CAP_NAME + "RunServer";
-    static final String TASK_PROJECT_COMPILE = "makeJar" + REPLACE_PROJECT_CAP_NAME + "";
-    static final String TASK_PROJECT_GEN_EXC = "extractExc" + REPLACE_PROJECT_CAP_NAME + "";
+    static final String TASK_PROJECT_COMPILE = "makeJar" + REPLACE_PROJECT_CAP_NAME;
+    static final String TASK_PROJECT_GEN_EXC = "extractExc" + REPLACE_PROJECT_CAP_NAME;
     static final String TASK_PROJECT_RANGEMAP = "extract" + REPLACE_PROJECT_CAP_NAME + "Rangemap";
     static final String TASK_PROJECT_RETROMAP = "retromapMc" + REPLACE_PROJECT_CAP_NAME;
     static final String TASK_PROJECT_RETRO_NONMC = "retromapNonMc" + REPLACE_PROJECT_CAP_NAME;

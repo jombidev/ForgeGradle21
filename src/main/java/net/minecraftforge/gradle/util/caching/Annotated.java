@@ -24,7 +24,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-class Annotated {
+public class Annotated {
     private final Class<?> clazz;
     private final String symbolName;
     private final boolean isMethod;

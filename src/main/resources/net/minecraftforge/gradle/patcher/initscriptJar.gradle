@@ -1,11 +1,13 @@
+package net.minecraftforge.gradle.patcher
+
 allprojects { project ->
     if (project == project.rootProject)
-        return;
+        return
 
     afterEvaluate {
         project.tasks.jar {
-            destinationDir = project.file("@RECOMP_DIR@");
-            archiveName = "@JAR_NAME@";
+            destinationDir = project.file("@RECOMP_DIR@")
+            archiveName = "@JAR_NAME@"
         }
     }
 }

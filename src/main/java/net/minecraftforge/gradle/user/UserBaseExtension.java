@@ -31,10 +31,10 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class UserBaseExtension extends BaseExtension {
-    private final HashMap<String, Object> replacements = new HashMap<String, Object>();
-    private final ArrayList<String> includes = new ArrayList<String>();
-    private final ArrayList<Object> ats = new ArrayList<Object>();
-    private final ArrayList<Object> atSources = new ArrayList<Object>();
+    private final HashMap<String, Object> replacements = new HashMap<>();
+    private final ArrayList<String> includes = new ArrayList<>();
+    private final ArrayList<Object> ats = new ArrayList<>();
+    private final ArrayList<Object> atSources = new ArrayList<>();
     private boolean useDepAts = false;
     private String runDir = "run";
     private boolean makeObfSourceJar = true;
@@ -42,7 +42,6 @@ public class UserBaseExtension extends BaseExtension {
     private List<Object> clientRunArgs = Lists.newArrayList();
     private List<Object> serverJvmArgs = Lists.newArrayList();
     private List<Object> serverRunArgs = Lists.newArrayList();
-    private boolean gitVersion = true;
 
     public UserBaseExtension(UserBasePlugin<? extends UserBaseExtension> plugin) {
         super(plugin);

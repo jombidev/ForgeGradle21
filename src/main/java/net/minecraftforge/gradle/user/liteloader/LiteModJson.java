@@ -47,6 +47,7 @@ public class LiteModJson {
         this.revision = revision;
 
         this.name = project.getName();
+        //noinspection DataFlowIssue // exist check is working
         this.displayName = project.hasProperty("displayName") ? project.property("displayName").toString() : project.getDescription();
         this.version = project.getVersion().toString();
     }
@@ -61,28 +62,28 @@ public class LiteModJson {
 
     public List<String> getClassTransformerClasses() {
         if (this.classTransformerClasses == null) {
-            this.classTransformerClasses = new ArrayList<String>();
+            this.classTransformerClasses = new ArrayList<>();
         }
         return this.classTransformerClasses;
     }
 
     public List<String> getDependsOn() {
         if (this.dependsOn == null) {
-            this.dependsOn = new ArrayList<String>();
+            this.dependsOn = new ArrayList<>();
         }
         return this.dependsOn;
     }
 
     public List<String> getRequiredAPIs() {
         if (this.requiredAPIs == null) {
-            this.requiredAPIs = new ArrayList<String>();
+            this.requiredAPIs = new ArrayList<>();
         }
         return this.requiredAPIs;
     }
 
     public List<String> getMixinConfigs() {
         if (this.mixinConfigs == null) {
-            this.mixinConfigs = new ArrayList<String>();
+            this.mixinConfigs = new ArrayList<>();
         }
         return this.mixinConfigs;
     }

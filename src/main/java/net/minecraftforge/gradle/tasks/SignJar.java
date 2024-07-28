@@ -37,6 +37,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -98,7 +99,7 @@ public class SignJar extends DefaultTask implements PatternFilterable {
         final Spec<FileTreeElement> spec = patternSet.getAsSpec();
 
         toSign.getParentFile().mkdirs();
-        final JarOutputStream outs = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(toSign)));
+        final JarOutputStream outs = new JarOutputStream(new BufferedOutputStream(Files.newOutputStream(toSign.toPath())));
 
         getProject().zipTree(inputJar).visit(new FileVisitor() {
 
@@ -109,7 +110,7 @@ public class SignJar extends DefaultTask implements PatternFilterable {
                     ZipEntry entry = new ZipEntry(path.endsWith("/") ? path : path + "/");
                     outs.putNextEntry(entry);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    getProject().getLogger().error("error while visit zip entry", e);
                 }
             }
 
@@ -129,7 +130,7 @@ public class SignJar extends DefaultTask implements PatternFilterable {
                         stream.close();
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    getProject().getLogger().error("error while visit zip entry", e);
                 }
             }
 
@@ -141,7 +142,7 @@ public class SignJar extends DefaultTask implements PatternFilterable {
     private void writeOutputJar(File signedJar, File outputJar, Map<String, Entry<byte[], Long>> unsigned) throws IOException {
         outputJar.getParentFile().mkdirs();
 
-        JarOutputStream outs = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(outputJar)));
+        JarOutputStream outs = new JarOutputStream(new BufferedOutputStream(Files.newOutputStream(outputJar.toPath())));
 
         ZipFile base = new ZipFile(signedJar);
         for (ZipEntry e : Collections.list(base.entries())) {
@@ -184,7 +185,6 @@ public class SignJar extends DefaultTask implements PatternFilterable {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public PatternFilterable exclude(Closure arg0) {
         return patternSet.exclude(arg0);
     }
@@ -215,7 +215,6 @@ public class SignJar extends DefaultTask implements PatternFilterable {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public PatternFilterable include(Closure arg0) {
         return patternSet.include(arg0);
     }

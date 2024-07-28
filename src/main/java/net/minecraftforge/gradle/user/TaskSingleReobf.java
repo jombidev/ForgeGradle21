@@ -217,7 +217,7 @@ public class TaskSingleReobf extends DefaultTask {
 
     private void applyExtraTransformers(File inJar, File outJar, List<ReobfTransformer> transformers) throws IOException {
         ZipFile in = new ZipFile(inJar);
-        final ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outJar)));
+        final ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(java.nio.file.Files.newOutputStream(outJar.toPath())));
 
         for (ZipEntry e : Collections.list(in.entries())) {
             if (e.isDirectory()) {
@@ -314,7 +314,7 @@ public class TaskSingleReobf extends DefaultTask {
     }
 
     public FileCollection getSecondarySrgFiles() {
-        List<File> files = new ArrayList<File>(secondarySrgFiles.size());
+        List<File> files = new ArrayList<>(secondarySrgFiles.size());
 
         for (Object thing : getProject().files(secondarySrgFiles)) {
             File f = getProject().file(thing);

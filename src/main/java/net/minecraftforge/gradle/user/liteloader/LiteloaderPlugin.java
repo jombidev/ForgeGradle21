@@ -26,7 +26,6 @@ import net.minecraftforge.gradle.util.json.LiteLoaderJson;
 import net.minecraftforge.gradle.util.json.LiteLoaderJson.Artifact;
 import net.minecraftforge.gradle.util.json.LiteLoaderJson.RepoObject;
 import net.minecraftforge.gradle.util.json.LiteLoaderJson.VersionObject;
-import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ConfigurationContainer;

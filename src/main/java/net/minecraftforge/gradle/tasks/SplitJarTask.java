@@ -22,8 +22,8 @@ package net.minecraftforge.gradle.tasks;
 import groovy.lang.Closure;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -49,7 +49,7 @@ public class SplitJarTask extends CachedTask implements PatternFilterable {
     private Object inJar;
 
     @Input
-    private PatternSet pattern = new PatternSet();
+    private final PatternSet pattern = new PatternSet();
 
     @Cached
     @OutputFile
@@ -73,8 +73,8 @@ public class SplitJarTask extends CachedTask implements PatternFilterable {
         out2.getParentFile().mkdirs();
 
         // begin reading jar
-        final JarOutputStream zout1 = new JarOutputStream(new FileOutputStream(out1));
-        final JarOutputStream zout2 = new JarOutputStream(new FileOutputStream(out2));
+        final JarOutputStream zout1 = new JarOutputStream(Files.newOutputStream(out1.toPath()));
+        final JarOutputStream zout2 = new JarOutputStream(Files.newOutputStream(out2.toPath()));
 
         getProject().zipTree(input).visit(new FileVisitor() {
 
@@ -100,7 +100,7 @@ public class SplitJarTask extends CachedTask implements PatternFilterable {
                         zout2.closeEntry();
                     }
                 } catch (IOException e) {
-                    Throwables.propagate(e);
+                    Throwables.throwIfUnchecked(e);
                 }
             }
         });
@@ -149,7 +149,6 @@ public class SplitJarTask extends CachedTask implements PatternFilterable {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public PatternFilterable exclude(Closure arg0) {
         return pattern.exclude(arg0);
     }
@@ -180,7 +179,6 @@ public class SplitJarTask extends CachedTask implements PatternFilterable {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public PatternFilterable include(Closure arg0) {
         return pattern.include(arg0);
     }

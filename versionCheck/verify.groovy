@@ -1,7 +1,7 @@
 #! /usr/bin/env groovy
 
 // check file
-File jsonFile;
+File jsonFile
 
 if (args.length > 0)
 {
@@ -13,7 +13,7 @@ if (args.length > 0)
     }
 }
 else
-{   
+{
     jsonFile = new File("ForgeGradleVersion.json")
     if (!jsonFile.exists())
     {
@@ -29,17 +29,18 @@ println ""
 // start verifying
 import groovy.json.*
 
-def result = new JsonSlurper().parse(jsonFile);
-broke = false;
-warned = false;
+def result = new JsonSlurper().parse(jsonFile)
+broke = false
+warned = false
 
 // some convenience methods
-public void error(msg)
+void error(msg)
 {
     broke = true
     println "ERROR -- "+msg
 }
-public void warn(msg)
+
+void warn(msg)
 {
     warned = true
     println "WARNING -- "+msg
@@ -59,7 +60,7 @@ if (sorted != result)
 // start valterating over objects
 result.eachWithIndex { version, index ->
 
-    def fieldBroke = false;
+    def fieldBroke = false
     // check mandatory field existances
     ['status', 'docUrl', 'version', 'changes', 'bugs'].each { field ->
         if (result["${field}"] == null)
@@ -68,7 +69,7 @@ result.eachWithIndex { version, index ->
             error "Version object with index ${index} is missing field ${field}"
         }
     }
-    
+
     if (fieldBroke)
     {
         println "FIELDS BROKEN"
@@ -82,7 +83,7 @@ result.eachWithIndex { version, index ->
     }
 
     // check status for enums
-    def status = version.status.toUpperCase();
+    def status = version.status.toUpperCase()
 
     // check if its upper case
     if (version.status != status)
@@ -155,7 +156,7 @@ else if (warned)
     return 1
 }
 else
-{   
+{
     println()
     println "JSON is perfect   :D"
     return 0

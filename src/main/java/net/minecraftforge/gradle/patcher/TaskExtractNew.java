@@ -20,9 +20,9 @@
 package net.minecraftforge.gradle.patcher;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -51,8 +51,8 @@ import com.google.common.io.ByteStreams;
  */
 class TaskExtractNew extends DefaultTask {
     //@formatter:off
-    private final List<Object> clean = new LinkedList<Object>();
-    private final List<Object> dirty = new LinkedList<Object>();
+    private final List<Object> clean = new LinkedList<>();
+    private final List<Object> dirty = new LinkedList<>();
     @Input
     @Optional
     private String ending;
@@ -80,9 +80,10 @@ class TaskExtractNew extends DefaultTask {
 
         boolean isClassEnding = false; //TODO: Figure out Abrar's logic for this... ending.equals(".class"); // this is a trigger for custom stuff
 
-        ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(output));
+        ZipOutputStream zout = new ZipOutputStream(Files.newOutputStream(output.toPath()));
         for (String path : dirtySupplier.gatherAll(ending)) {
-            if ((isClassEnding && matchesClass(cleanFiles, path)) || cleanFiles.contains(path)) {
+            //noinspection ConstantValue
+            if (isClassEnding && matchesClass(cleanFiles, path) || cleanFiles.contains(path)) {
                 continue;
             }
 
@@ -140,7 +141,7 @@ class TaskExtractNew extends DefaultTask {
     }
 
     public List<File> getCleanSource() {
-        List<File> files = new LinkedList<File>();
+        List<File> files = new LinkedList<>();
         for (Object f : clean)
             files.add(getProject().file(f));
         return files;
@@ -156,7 +157,7 @@ class TaskExtractNew extends DefaultTask {
     }
 
     public List<File> getDirtySource() {
-        List<File> files = new LinkedList<File>();
+        List<File> files = new LinkedList<>();
         for (Object f : dirty)
             files.add(getProject().file(f));
         return files;

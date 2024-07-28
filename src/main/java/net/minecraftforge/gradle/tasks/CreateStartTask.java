@@ -40,10 +40,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.logging.services.DefaultLoggingManager;
 import org.gradle.util.GradleVersion;
 
 import com.google.common.base.Charsets;
@@ -70,7 +70,7 @@ public class CreateStartTask extends CachedTask {
     @OutputDirectory
     private Object startOut;
 
-    private Set<String> classpath = Sets.newHashSet();
+    private final Set<String> classpath = Sets.newHashSet();
     private boolean compile;
 
     private static final String EXTRA_LINES = "//@@EXTRALINES@@";
@@ -101,7 +101,7 @@ public class CreateStartTask extends CachedTask {
             // write file
             File outFile = new File(resourceDir, resEntry.getKey());
             outFile.getParentFile().mkdirs();
-            Files.write(out, outFile, Charsets.UTF_8);
+            Files.asCharSink(outFile, Charsets.UTF_8).write(out);
         }
 
         // now compile, if im compiling.
@@ -161,7 +161,7 @@ public class CreateStartTask extends CachedTask {
                 ant.setLifecycleLogLevel(AntMessagePriority.ERROR);
             } else {
                 try {
-                    LoggingManager.class.getMethod("setLevel", LogLevel.class).invoke(task.getLogging(), LogLevel.ERROR);
+                    DefaultLoggingManager.class.getMethod("setLevelInternal", LogLevel.class).invoke(task.getLogging(), LogLevel.ERROR);
                 } catch (Exception e) {
                     //Couldn't find it? We are on some weird version oh well.
                     task.getLogger().info("Could not set log level:", e);
@@ -188,7 +188,7 @@ public class CreateStartTask extends CachedTask {
         try {
             return Resources.toString(resource, Charsets.UTF_8);
         } catch (Exception e) {
-            Throwables.propagate(e);
+            Throwables.throwIfUnchecked(e);
             return "";
         }
     }

@@ -23,6 +23,7 @@ import groovy.lang.Closure;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -44,10 +45,10 @@ import org.gradle.api.tasks.util.PatternSet;
 public class ExtractTask extends CachedTask implements PatternFilterable {
 
     @InputFiles
-    private LinkedHashSet<Object> sourcePaths = new LinkedHashSet<Object>();
+    private final LinkedHashSet<Object> sourcePaths = new LinkedHashSet<>();
 
     @Input
-    private PatternSet patternSet = new PatternSet();
+    private final PatternSet patternSet = new PatternSet();
 
     @Input
     private boolean includeEmptyDirs = true;
@@ -73,12 +74,12 @@ public class ExtractTask extends CachedTask implements PatternFilterable {
         ExtractionVisitor visitor = new ExtractionVisitor(dest, isIncludeEmptyDirs(), patternSet.getAsSpec());
 
         for (File source : getSourcePaths()) {
-            getLogger().debug("Extracting: " + source);
+            getLogger().debug("Extracting: {}", source);
             getProject().zipTree(source).visit(visitor);
         }
     }
 
-    private void delete(File f) throws IOException {
+    private void delete(File f) {
         if (f.isDirectory()) {
             for (File c : f.listFiles())
                 delete(c);
@@ -87,9 +88,7 @@ public class ExtractTask extends CachedTask implements PatternFilterable {
     }
 
     public ExtractTask from(Object... paths) {
-        for (Object path : paths) {
-            sourcePaths.add(path);
-        }
+        Collections.addAll(sourcePaths, paths);
         return this;
     }
 
@@ -148,7 +147,6 @@ public class ExtractTask extends CachedTask implements PatternFilterable {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public PatternFilterable exclude(Closure arg0) {
         return patternSet.exclude(arg0);
     }
@@ -179,7 +177,6 @@ public class ExtractTask extends CachedTask implements PatternFilterable {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public PatternFilterable include(Closure arg0) {
         return patternSet.include(arg0);
     }

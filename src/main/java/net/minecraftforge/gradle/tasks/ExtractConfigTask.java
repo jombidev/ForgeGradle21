@@ -40,13 +40,14 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class ExtractConfigTask extends CachedTask implements PatternFilterable {
 
     @Input
     private String config;
 
     @Input
-    private PatternSet patternSet = new PatternSet();
+    private final PatternSet patternSet = new PatternSet();
 
     @Input
     private boolean includeEmptyDirs = true;
@@ -72,12 +73,12 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
         ExtractionVisitor visitor = new ExtractionVisitor(dest, isIncludeEmptyDirs(), patternSet.getAsSpec());
 
         for (File source : getConfigFiles()) {
-            getLogger().debug("Extracting: " + source);
+            getLogger().debug("Extracting: {}", source);
             getProject().zipTree(source).visit(visitor);
         }
     }
 
-    private void delete(File f) throws IOException {
+    private void delete(File f) {
         if (f.isDirectory()) {
             for (File c : f.listFiles())
                 delete(c);
@@ -144,7 +145,6 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public PatternFilterable exclude(Closure arg0) {
         return patternSet.exclude(arg0);
     }
@@ -175,7 +175,6 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public PatternFilterable include(Closure arg0) {
         return patternSet.include(arg0);
     }

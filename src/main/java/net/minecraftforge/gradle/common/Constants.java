@@ -19,52 +19,39 @@
  */
 package net.minecraftforge.gradle.common;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.Callable;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
+import au.com.bytecode.opencsv.CSVParser;
+import au.com.bytecode.opencsv.CSVReader;
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
+import com.google.common.io.Files;
+import groovy.lang.Closure;
+import net.minecraftforge.gradle.patcher.PatcherExtension;
+import net.minecraftforge.gradle.util.json.version.OS;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.CharStreams;
-import com.google.common.io.Files;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
-import au.com.bytecode.opencsv.CSVParser;
-import au.com.bytecode.opencsv.CSVReader;
-import groovy.lang.Closure;
-import net.minecraftforge.gradle.patcher.PatcherExtension;
-import net.minecraftforge.gradle.util.json.version.OS;
-
+@SuppressWarnings({"ResultOfMethodCallIgnored", "CallToPrintStackTrace"})
 public class Constants {
     // OS
-    public static enum SystemArch {
+    public enum SystemArch {
         BIT_32, BIT_64;
 
         public String toString() {
@@ -83,7 +70,6 @@ public class Constants {
 
     public static final String GROUP_FG = "ForgeGradle";
 
-    @SuppressWarnings("serial")
     public static final Closure<Boolean> CALL_FALSE = new Closure<Boolean>(Constants.class) {
         public Boolean call(Object o) {
             return false;
@@ -212,13 +198,13 @@ public class Constants {
     public static final String TASK_CLEAN_CACHE = "cleanCache";
 
     // util
-    public static final String NEWLINE = System.getProperty("line.separator");
+    public static final String NEWLINE = System.lineSeparator();
 
     // helper methods
     public static List<String> getClassPath() {
         URL[] urls = ((URLClassLoader) PatcherExtension.class.getClassLoader()).getURLs();
 
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         for (URL url : urls) {
             list.add(url.getPath());
         }
@@ -226,12 +212,12 @@ public class Constants {
     }
 
     public static URL[] toUrls(FileCollection collection) throws MalformedURLException {
-        ArrayList<URL> urls = new ArrayList<URL>();
+        ArrayList<URL> urls = new ArrayList<>();
 
         for (File file : collection.getFiles())
             urls.add(file.toURI().toURL());
 
-        return urls.toArray(new URL[urls.size()]);
+        return urls.toArray(new URL[0]);
     }
 
     public static File getMinecraftDirectory() {
@@ -355,7 +341,7 @@ public class Constants {
     }
 
     public static List<String> hashAll(File file) {
-        LinkedList<String> list = new LinkedList<String>();
+        LinkedList<String> list = new LinkedList<>();
 
         if (file.isDirectory()) {
             for (File f : file.listFiles())
@@ -368,7 +354,7 @@ public class Constants {
 
     public static String hash(File file, String function) {
         try {
-            InputStream fis = new FileInputStream(file);
+            InputStream fis = java.nio.file.Files.newInputStream(file.toPath());
             byte[] array = ByteStreams.toByteArray(fis);
             fis.close();
 
@@ -384,8 +370,8 @@ public class Constants {
         try {
             MessageDigest hasher = MessageDigest.getInstance(function);
 
-            ZipInputStream zin = new ZipInputStream(new FileInputStream(file));
-            ZipEntry entry = null;
+            ZipInputStream zin = new ZipInputStream(java.nio.file.Files.newInputStream(file.toPath()));
+            ZipEntry entry;
             while ((entry = zin.getNextEntry()) != null) {
                 hasher.update(entry.getName().getBytes());
                 hasher.update(ByteStreams.toByteArray(zin));
@@ -395,12 +381,12 @@ public class Constants {
             byte[] hash = hasher.digest();
 
             // convert to string
-            String result = "";
+            StringBuilder result = new StringBuilder();
 
-            for (int i = 0; i < hash.length; i++) {
-                result += Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1);
+            for (byte b : hash) {
+                result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
-            return result;
+            return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -421,12 +407,12 @@ public class Constants {
             MessageDigest complete = MessageDigest.getInstance(function);
             byte[] hash = complete.digest(bytes);
 
-            String result = "";
+            StringBuilder result = new StringBuilder();
 
-            for (int i = 0; i < hash.length; i++) {
-                result += Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1);
+            for (byte b : hash) {
+                result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
-            return result;
+            return result.toString();
         } catch (Exception e) {
             e.printStackTrace();
         }

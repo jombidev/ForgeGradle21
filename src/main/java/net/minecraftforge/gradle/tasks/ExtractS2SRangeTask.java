@@ -22,7 +22,6 @@ package net.minecraftforge.gradle.tasks;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.LinkedList;
 import java.util.List;
 
 import net.minecraftforge.gradle.common.Constants;
@@ -45,7 +44,7 @@ import com.google.common.collect.Lists;
 
 public class ExtractS2SRangeTask extends DefaultTask {
     @InputFiles
-    private List<Object> libs = Lists.newArrayList();
+    private final List<Object> libs = Lists.newArrayList();
 
     private final List<Object> sources = Lists.newArrayList();
 
@@ -58,7 +57,7 @@ public class ExtractS2SRangeTask extends DefaultTask {
 
         InputSupplier inSup;
 
-        if (sources.size() == 0)
+        if (sources.isEmpty())
             return; // no input.
         if (sources.size() == 1) {
             // just 1 supplier.

@@ -19,8 +19,6 @@
  */
 package net.minecraftforge.gradle.patcher;
 
-import club.chachy.GitVersion;
-import club.chachy.data.GitData;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -35,7 +33,6 @@ import net.minecraftforge.gradle.util.CopyInto;
 import net.minecraftforge.gradle.util.GradleConfigurationException;
 import net.minecraftforge.gradle.util.json.version.Library;
 import net.minecraftforge.gradle.util.json.version.Version;
-import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Task;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -52,6 +49,7 @@ import java.util.Set;
 import static net.minecraftforge.gradle.common.Constants.*;
 import static net.minecraftforge.gradle.patcher.PatcherConstants.*;
 
+@SuppressWarnings("CallToPrintStackTrace")
 public class PatcherPlugin extends BasePlugin<PatcherExtension> {
     @Override
     public void applyPlugin() {
@@ -59,20 +57,8 @@ public class PatcherPlugin extends BasePlugin<PatcherExtension> {
 
         NamedDomainObjectContainer<PatcherProject> container = project.container(PatcherProject.class, new PatcherProjectFactory(this));
         getExtension().setProjectContainer(container);
-        container.whenObjectAdded(new Action<PatcherProject>() {
-            @Override
-            public void execute(PatcherProject arg0) {
-                createProject(arg0);
-            }
-
-        });
-        container.whenObjectRemoved(new Action<PatcherProject>() {
-            @Override
-            public void execute(PatcherProject arg0) {
-                removeProject(arg0);
-            }
-
-        });
+        container.whenObjectAdded(this::createProject);
+        container.whenObjectRemoved(this::removeProject);
 
         // top level tasks
         {
@@ -823,14 +809,8 @@ public class PatcherPlugin extends BasePlugin<PatcherExtension> {
         CreateStartTask makeProperties = makeTask(projectString(TASK_PROJECT_MAKE_PROPERTIES, patcher), CreateStartTask.class);
         {
             makeProperties.addResource("net/minecraftforge/gradle/version/ProjectVersion.java");
-            GitData propertyData;
-            if (getExtension().isGitVersion()) {
-                propertyData = GitVersion.Companion.invoke(project.getProjectDir());
-            } else {
-                propertyData = new GitData("unknown", project.getVersion().toString());
-            }
-            makeProperties.addReplacement("@@PROJECT_VERSION@@", propertyData.getCommit());
-            makeProperties.addReplacement("@@GIT_BRANCH@@", propertyData.getBranch());
+            makeProperties.addReplacement("@@PROJECT_VERSION@@", project.getVersion().toString());
+            makeProperties.addReplacement("@@GIT_BRANCH@@", "unknown");
             makeProperties.setStartOut(subWorkspace(patcher.getCapName() + DIR_EXTRACTED_START));
             makeProperties.setDoesCache(false);
             makeProperties.getOutputs().upToDateWhen(CALL_FALSE); //TODO: Abrar, Fix this...
@@ -896,7 +876,7 @@ public class PatcherPlugin extends BasePlugin<PatcherExtension> {
                     throw new GradleConfigurationException("Project " + patchAfter + " does not exist! You cannot patch after it!");
 
                 if (toPut.isApplyMcpPatches() && !project.isApplyMcpPatches()) {
-                    // its trying to apply SRG patches after a project that does MCP patches??
+                    // it's trying to apply SRG patches after a project that does MCP patches??
                     // IMPOSSIBRU!
                     throw new GradleConfigurationException("Project " + patchAfter + " applies SRG named patches, and is attempting to patch after a project that uses MCP named patches! THATS IMPOSSIBRU!");
                 }
@@ -906,7 +886,7 @@ public class PatcherPlugin extends BasePlugin<PatcherExtension> {
                 tempMap.put(project, toPut);
             } catch (IllegalArgumentException e) {
                 // must exist already.. thus a duplicate value..
-                throw new GradleConfigurationException("2 projects cannot patch after the same project '" + toPut == null ? "clean" : toPut.getName() + "'!");
+                throw new GradleConfigurationException("2 projects cannot patch after the same project '" + (toPut == null ? "clean" : toPut.getName()) + "'!");
             }
         }
 

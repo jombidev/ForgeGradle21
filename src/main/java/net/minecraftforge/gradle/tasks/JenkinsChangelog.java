@@ -19,37 +19,26 @@
  */
 package net.minecraftforge.gradle.tasks;
 
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import groovy.util.MapEntry;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.xml.bind.DatatypeConverter;
-
 import net.minecraftforge.gradle.common.Constants;
-
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import javax.xml.bind.DatatypeConverter;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class JenkinsChangelog extends DefaultTask {
-    //@formatter:off
     @Input
     Object serverRoot;
     @Input
@@ -60,7 +49,6 @@ public class JenkinsChangelog extends DefaultTask {
     Object authPassword;
     @Input
     Object targetBuild;
-    //@formatter:on
 
     @OutputFile
     Object output;
@@ -111,12 +99,12 @@ public class JenkinsChangelog extends DefaultTask {
         Files.write(out.toString().getBytes(), outFile);
     }
 
-    private String read(String url) throws MalformedURLException, IOException {
+    private String read(String url) throws IOException {
         return read(new URL(getServerRoot() + "job/" + getJobName() + url));
     }
 
     private String read(URL url) throws IOException {
-        URLConnection con = null;
+        URLConnection con;
         con = url.openConnection();
         con.setRequestProperty("User-Agent", Constants.USER_AGENT);
         if (auth != null) {
@@ -150,34 +138,22 @@ public class JenkinsChangelog extends DefaultTask {
             data = read("/api/python?tree=allBuilds[result,number,actions[text],changeSet[items[author[fullName],comment]]]");//&pretty=true");
             data = data.replace("\"result\":None", "\"result\":\"\"");
             data = cleanJson(data, "None"); //This kills Gson for some reason
-            data = cleanJson(data, "{}"); //Empty entries, just for sanities sake
+            data = cleanJson(data, "{}"); //Empty entries, just for sanitie’s sake
 
             List<Map<String, Object>> json = (List<Map<String, Object>>) new Gson().fromJson(data, Map.class).get("allBuilds");
-            Collections.sort(json, new Comparator<Map<String, Object>>() {
-                @Override
-                public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                    return (int) ((Double) o1.get("number") - (Double) o2.get("number"));
-                }
+            json.sort((o1, o2) -> (int) ((Double) o1.get("number") - (Double) o2.get("number")));
 
-            });
-
-            List<Entry<String, String>> items = new ArrayList<Entry<String, String>>();
+            List<Entry<String, String>> items = new ArrayList<>();
             Iterator<Map<String, Object>> bitr = json.iterator();
             while (bitr.hasNext()) {
                 Map<String, Object> build = bitr.next();
 
                 List<Map<String, String>> actions = (List<Map<String, String>>) build.get("actions");
-                Iterator<Map<String, String>> itr = actions.iterator();
-                while (itr.hasNext()) {
-                    Map<String, String> map = itr.next();
-                    if (!map.containsKey("text") ||
-                            map.get("text").contains("http") ||
-                            map.get("text").contains("href=")) {
-                        itr.remove();
-                    }
-                }
+                actions.removeIf(map -> !map.containsKey("text") ||
+                        map.get("text").contains("http") ||
+                        map.get("text").contains("href="));
 
-                if (actions.size() == 0) {
+                if (actions.isEmpty()) {
                     build.put("version", versioned ? ((Double) build.get("number")).intValue() : getProject().getVersion());
                     versioned = true;
                 } else {
@@ -190,9 +166,9 @@ public class JenkinsChangelog extends DefaultTask {
                 build.put("items", items);
 
                 if (build.get("result").equals("SUCCESS")) {
-                    if (items.size() == 0)
+                    if (items.isEmpty())
                         bitr.remove();
-                    items = new ArrayList<Entry<String, String>>();
+                    items = new ArrayList<>();
                 } else {
                     bitr.remove();
                 }
@@ -202,19 +178,13 @@ public class JenkinsChangelog extends DefaultTask {
                 build.remove("actions");
             }
             //prettyPrint(json);
-            Collections.sort(json, new Comparator<Map<String, Object>>() {
-                @Override
-                public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                    return (int) ((Double) o2.get("number") - (Double) o1.get("number"));
-                }
-
-            });
+            json.sort((o1, o2) -> (int) ((Double) o2.get("number") - (Double) o1.get("number")));
             return json;
         } catch (Exception e) {
-            e.printStackTrace();
+            getProject().getLogger().error("error while get build info", e);
             getLogger().lifecycle(data);
         }
-        return new ArrayList<Map<String, Object>>();
+        return new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -222,13 +192,13 @@ public class JenkinsChangelog extends DefaultTask {
         String data = null;
         try {
             Object ver = "";
-            if (builds.size() > 0) {
+            if (!builds.isEmpty()) {
                 ver = builds.get(0).get("number");
             }
             boolean versioned = false;
             data = read("/lastBuild/api/python?tree=number,changeSet[items[author[fullName],comment]]");//&pretty=true");
             data = cleanJson(data, "None"); //This kills Gson for some reason
-            data = cleanJson(data, "{}"); //Empty entries, just for sanities sake
+            data = cleanJson(data, "{}"); //Empty entries, just for sanitie’s sake
 
             Map<String, Object> build = (Map<String, Object>) new Gson().fromJson(data, Map.class);
             if (build.get("number").equals(ver)) {
@@ -236,7 +206,7 @@ public class JenkinsChangelog extends DefaultTask {
             }
             build.put("version", versioned ? "Build " + ((Double) build.get("number")).intValue() : getProject().getVersion());
 
-            List<Entry<String, String>> items = new ArrayList<Entry<String, String>>();
+            List<Entry<String, String>> items = new ArrayList<>();
             for (Map<String, Object> e : (List<Map<String, Object>>) ((Map<String, Object>) build.get("changeSet")).get("items")) {
                 items.add(new MapEntry(((Map<String, String>) e.get("author")).get("fullName"), e.get("comment")));
             }
@@ -249,7 +219,7 @@ public class JenkinsChangelog extends DefaultTask {
             builds.add(0, build);
             //prettyPrint(build);
         } catch (Exception e) {
-            e.printStackTrace();
+            getProject().getLogger().error("error while get latest build", e);
             getLogger().lifecycle(data);
         }
     }
@@ -299,7 +269,7 @@ public class JenkinsChangelog extends DefaultTask {
                     targetBuildResolved = Integer.MAX_VALUE;
                 }
             } catch (NumberFormatException e) {
-                getProject().getLogger().debug("Error reading target build: " + e.getMessage());
+                getProject().getLogger().debug("Error reading target build: {}", e.getMessage());
             }
         }
 

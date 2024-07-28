@@ -19,6 +19,8 @@
  */
 package net.minecraftforge.gradle.util.json.curse;
 
+import java.util.Objects;
+
 public class CurseProjectDep {
 
     /**
@@ -45,7 +47,7 @@ public class CurseProjectDep {
             return false;
         }
         CurseProjectDep that = (CurseProjectDep) o;
-        return !(slug != null ? !slug.equals(that.slug) : that.slug != null);
+        return Objects.equals(slug, that.slug);
     }
 
     @Override

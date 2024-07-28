@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.nio.file.Files;
 
-import net.minecraftforge.gradle.util.MultiDirSupplier;
 import net.minecraftforge.srg2source.util.io.InputSupplier;
 
 import org.junit.After;
@@ -38,10 +38,12 @@ import org.junit.Test;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.io.Files;
 
+import static com.google.common.base.StandardSystemProperty.JAVA_IO_TMPDIR;
+
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class MultiDirSupplierTest {
-    private final List<File> dirs = new LinkedList<File>();
+    private final List<File> dirs = new LinkedList<>();
     private final Multimap<File, String> expectedFiles = HashMultimap.create();
     private final Random rand = new Random();
     private static final String END = ".tmp";
@@ -52,12 +54,12 @@ public class MultiDirSupplierTest {
 
         for (int i = 0; i < dirNum; i++) {
             // create and add dir
-            File dir = Files.createTempDir().getCanonicalFile();
+            File dir = Files.createTempDirectory(JAVA_IO_TMPDIR.value()).toFile().getCanonicalFile();
             dirs.add(dir);
 
             int fileNum = rand.nextInt(9) + 1; // 0-10
             for (int j = 0; j < fileNum; j++) {
-                File f = File.createTempFile("" + j + "tmp-", END, dir);
+                File f = File.createTempFile(j + "tmp-", END, dir);
                 expectedFiles.put(dir, getRelative(dir, f));
             }
         }
@@ -122,7 +124,7 @@ public class MultiDirSupplierTest {
     @Test
     public void testIOStreams() throws IOException {
         // to keep track of changes to check later.
-        HashMap<String, byte[]> dataMap = new HashMap<String, byte[]>(expectedFiles.size());
+        HashMap<String, byte[]> dataMap = new HashMap<>(expectedFiles.size());
 
         // its both an input and output supplier.
         MultiDirSupplier supp = new MultiDirSupplier(dirs);

@@ -37,7 +37,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 class TaskProcessJson extends DefaultTask {
-    private Map<String, Object> replacements = Maps.newHashMap();
+    private final Map<String, Object> replacements = Maps.newHashMap();
 
     @InputFile
     private Object releaseJson;
@@ -59,7 +59,7 @@ class TaskProcessJson extends DefaultTask {
         File outFile = getInstallerJson();
         File truncatedFile = getUniversalJson();
 
-        String input = Files.toString(inputFile, Constants.CHARSET);
+        String input = Files.asCharSource(inputFile, Constants.CHARSET).read();
 
         for (Entry<String, Object> e : replacements.entrySet()) {
             input = input.replace(e.getKey(), Constants.resolveString(e.getValue()));

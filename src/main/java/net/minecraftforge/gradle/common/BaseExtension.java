@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public abstract class BaseExtension {
-    protected static final transient Map<String, String> MCP_VERSION_MAP = ImmutableMap.of("1.8", "9.10");
+    protected static final Map<String, String> MCP_VERSION_MAP = ImmutableMap.of("1.8", "9.10");
 
     public final String forgeGradleVersion;
 
@@ -269,7 +269,7 @@ public abstract class BaseExtension {
 
                     // right channel, but wrong mc
                     if (rightChannel && !rightMc) {
-                        project.getLogger().warn("This mapping '" + getMappings() + "' was designed for MC " + mcEntry.getKey() + "! Use at your own peril.");
+                        project.getLogger().warn("This mapping '{}' was designed for MC {}! Use at your own peril.", getMappings(), mcEntry.getKey());
                         replacer.putReplacement(Constants.REPLACE_MCP_MCVERSION, mcEntry.getKey()); // set MC version
                         return;
                         // throw new GradleConfigurationException("This mapping '" + getMappings() + "' exists only for MC " + mcEntry.getKey() + "!");

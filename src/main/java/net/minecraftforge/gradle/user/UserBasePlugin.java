@@ -19,8 +19,6 @@
  */
 package net.minecraftforge.gradle.user;
 
-import club.chachy.GitVersion;
-import club.chachy.data.GitData;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -221,10 +219,10 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         }
 
         // complain about version number
-        // blame cazzar if this regex doesnt work
-        Pattern pattern = Pattern.compile("(?:(?:mc)?((?:\\d+)(?:.\\d+)+)-)?((?:0|[1-9][0-9]*)(?:\\.(?:0|[1-9][0-9]*))+)(?:-([\\da-z\\-]+(?:\\.[\\da-z\\-]+)*))?(?:\\+([\\da-z\\-]+(?:\\.[\\da-z\\-]+)*))?", Pattern.CASE_INSENSITIVE);
+        // blame cazzar if this regex doesn't work
+        Pattern pattern = Pattern.compile("(?:(?:mc)?(\\d+(?:.\\d+)+)-)?((?:0|[1-9][0-9]*)(?:\\.(?:0|[1-9][0-9]*))+)(?:-([\\da-z\\-]+(?:\\.[\\da-z\\-]+)*))?(?:\\+([\\da-z\\-]+(?:\\.[\\da-z\\-]+)*))?", Pattern.CASE_INSENSITIVE);
         if (!pattern.matcher(project.getVersion().toString()).matches()) {
-            project.getLogger().warn("Version string '" + project.getVersion() + "' does not match SemVer specification ");
+            project.getLogger().warn("Version string '{}' does not match SemVer specification ", project.getVersion());
             project.getLogger().warn("You should try SemVer : http://semver.org/");
         }
     }
@@ -321,14 +319,8 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
         CreateStartTask makeProperties = makeTask(TASK_MAKE_PROPERTIES, CreateStartTask.class);
         {
             makeProperties.addResource("net/minecraftforge/gradle/version/ProjectVersion.java");
-            GitData propertyData;
-            if (getExtension().isGitVersion()) {
-                propertyData = GitVersion.Companion.invoke(project.getProjectDir());
-            } else {
-                propertyData = new GitData("unknown", project.getVersion().toString());
-            }
-            makeProperties.addReplacement("@@PROJECT_VERSION@@", propertyData.getCommit());
-            makeProperties.addReplacement("@@GIT_BRANCH@@", propertyData.getBranch());
+            makeProperties.addReplacement("@@PROJECT_VERSION@@", project.getVersion().toString());
+            makeProperties.addReplacement("@@GIT_BRANCH@@", "unknown");
             makeProperties.setStartOut(getStartDir());
             makeProperties.setDoesCache(false);
             makeProperties.getOutputs().upToDateWhen(CALL_FALSE); //TODO: Abrar, Fix this...
@@ -983,7 +975,6 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
     /**
      * Adds the intellij run configs and makes a few other tweaks to the intellij project creation
      */
-    @SuppressWarnings("serial")
     protected void configureIntellij() {
         IdeaModel ideaConv = (IdeaModel) project.getExtensions().getByName("idea");
 
@@ -1051,7 +1042,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
 
                 transformer.transform(source, result);
             } catch (Exception e) {
-                e.printStackTrace();
+                project.getLogger().error("error while configure intellij", e);
             }
         });
         task.setGroup(GROUP_FG);
@@ -1067,7 +1058,7 @@ public abstract class UserBasePlugin<T extends UserBaseExtension> extends BasePl
                 try {
                     injectIntellijRuns(doc, project.getProjectDir().getCanonicalPath());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    project.getLogger().error("error while injecting intellij runs", e);
                 }
 
                 return null;

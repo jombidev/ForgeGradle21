@@ -21,7 +21,6 @@ package net.minecraftforge.gradle.patcher;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URLClassLoader;
@@ -68,10 +67,10 @@ class TaskReobfuscate extends DefaultTask {
     //@formatter: on
 
     @Input
-    private LinkedList<String> extraSrg = new LinkedList<String>();
+    private LinkedList<String> extraSrg = new LinkedList<>();
 
     @InputFiles
-    private List<Object> libs = Lists.newArrayList();
+    private final List<Object> libs = Lists.newArrayList();
 
     //@formatter:off
     public TaskReobfuscate() {
@@ -112,7 +111,7 @@ class TaskReobfuscate extends DefaultTask {
         obfuscate(inJar, getLibs(), srg);
     }
 
-    private void obfuscate(File inJar, FileCollection classpath, File srg) throws FileNotFoundException, IOException {
+    private void obfuscate(File inJar, FileCollection classpath, File srg) throws IOException {
         // load mapping
         JarMapping mapping = new JarMapping();
         mapping.loadMappings(Files.newReader(srg, Charset.defaultCharset()), null, null, false);

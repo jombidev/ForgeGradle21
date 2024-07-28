@@ -27,6 +27,7 @@ import org.gradle.api.specs.Spec;
 import java.io.File;
 import java.nio.charset.Charset;
 
+@SuppressWarnings("ALL")
 public class CacheCheckSpec implements Spec<Task> {
     private final CacheContainer container;
 
@@ -69,25 +70,25 @@ public class CacheCheckSpec implements Spec<Task> {
 
                 if (!calcMD5.equals(foundMD5)) {
                     logger.info(" Corrupted Cache!");
-                    logger.info("Checksums found: " + foundMD5);
-                    logger.info("Checksums calculated: " + calcMD5);
+                    logger.info("Checksums found: {}", foundMD5);
+                    logger.info("Checksums calculated: {}", calcMD5);
                     file.delete();
                     CacheUtil.getHashFile(file).delete();
                     return true;
                 }
 
-                logger.debug("Checksums found: " + foundMD5);
-                logger.debug("Checksums calculated: " + calcMD5);
+                logger.debug("Checksums found: {}", foundMD5);
+                logger.debug("Checksums calculated: {}", calcMD5);
 
             }
             // error? spit it and do the task.
             catch (Exception e) {
-                e.printStackTrace();
+                logger.error("error while checking cache file", e);
                 return true;
             }
         }
 
-        // no problems? all of em are here? skip the task.
+        // no problems? all em are here? skip the task.
         return false;
     }
 }

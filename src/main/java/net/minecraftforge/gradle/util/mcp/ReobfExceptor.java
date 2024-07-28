@@ -60,7 +60,7 @@ public class ReobfExceptor {
             outSrg.delete();
 
         // rewrite it.
-        String fixed = Files.readLines(inSrg, Charset.defaultCharset(), new SrgLineProcessor(clsMap, access));
+        String fixed = Files.asCharSource(inSrg, Charset.defaultCharset()).readLines(new SrgLineProcessor(clsMap, access));
         Files.write(fixed.getBytes(), outSrg);
     }
 
@@ -93,9 +93,9 @@ public class ReobfExceptor {
         for (File f : csvs) {
             if (f == null) continue;
 
-            Files.readLines(f, Charset.defaultCharset(), new LineProcessor<Object>() {
+            Files.asCharSource(f, Charset.defaultCharset()).readLines(new LineProcessor<Object>() {
                 @Override
-                public boolean processLine(String line) throws IOException {
+                public boolean processLine(String line) {
                     String[] s = line.split(",");
                     csvData.put(s[0], s[1]);
                     return true;
@@ -113,7 +113,7 @@ public class ReobfExceptor {
 
     // ACTUAL things here...
 
-    private void renameAccess(Map<String, AccessInfo> data, Map<String, String> csvData) throws IOException {
+    private void renameAccess(Map<String, AccessInfo> data, Map<String, String> csvData) {
         for (AccessInfo info : data.values()) {
             for (Insn i : info.insns) {
                 String tmp = csvData.get(i.name);
@@ -145,17 +145,18 @@ public class ReobfExceptor {
                 try {
                     zip.close();
                 } catch (IOException e) {
+                    //
                 }
             }
         }
     }
 
     private Map<String, String> createClassMap(Map<String, String> markerMap, final List<String> interfaces) throws IOException {
-        Map<String, String> excMap = Files.readLines(excConfig, Charset.defaultCharset(), new LineProcessor<Map<String, String>>() {
+        Map<String, String> excMap = Files.asCharSource(excConfig, Charset.defaultCharset()).readLines(new LineProcessor<Map<String, String>>() {
             final Map<String, String> tmp = Maps.newHashMap();
 
             @Override
-            public boolean processLine(String line) throws IOException {
+            public boolean processLine(String line) {
                 if (line.contains(".") ||
                         !line.contains("=") ||
                         line.startsWith("#")) return true;
@@ -248,28 +249,34 @@ public class ReobfExceptor {
         }
 
         @Override
-        public boolean processLine(String line) throws IOException {
+        public boolean processLine(String line) {
             String[] split = line.split(" ");
-            if (split[0].equals("CL:")) {
-                split[2] = rename(split[2]);
-            } else if (split[0].equals("FD:")) {
-                String[] s = rsplit(split[2], "/");
-                split[2] = rename(s[0]) + "/" + s[1];
-            } else if (split[0].equals("MD:")) {
-                String[] s = rsplit(split[3], "/");
-                split[3] = rename(s[0]) + "/" + s[1];
-
-                if (access.containsKey(split[3])) {
-                    split[3] = access.get(split[3]);
+            switch (split[0]) {
+                case "CL:":
+                    split[2] = rename(split[2]);
+                    break;
+                case "FD:": {
+                    String[] s = rsplit(split[2], "/");
+                    split[2] = rename(s[0]) + "/" + s[1];
+                    break;
                 }
+                case "MD:": {
+                    String[] s = rsplit(split[3], "/");
+                    split[3] = rename(s[0]) + "/" + s[1];
 
-                Matcher m = reg.matcher(split[4]);
-                StringBuffer b = new StringBuffer();
-                while (m.find()) {
-                    m.appendReplacement(b, "L" + rename(m.group(1)).replace("$", "\\$") + ";");
+                    if (access.containsKey(split[3])) {
+                        split[3] = access.get(split[3]);
+                    }
+
+                    Matcher m = reg.matcher(split[4]);
+                    StringBuffer b = new StringBuffer();
+                    while (m.find()) {
+                        m.appendReplacement(b, "L" + rename(m.group(1)).replace("$", "\\$") + ";");
+                    }
+                    m.appendTail(b);
+                    split[4] = b.toString();
+                    break;
                 }
-                m.appendTail(b);
-                split[4] = b.toString();
             }
             out.append(StringUtil.joinString(Arrays.asList(split), " ")).append('\n');
             return true;
@@ -346,7 +353,7 @@ public class ReobfExceptor {
         public String name;
         public String desc;
         public int access;
-        public List<Insn> insns = new ArrayList<Insn>();
+        public List<Insn> insns = new ArrayList<>();
         private String cache = null;
 
         public AccessInfo(String owner, String name, String desc) {
@@ -364,7 +371,7 @@ public class ReobfExceptor {
         @Override
         public String toString() {
             if (cache == null) {
-                if (insns.size() < 1)
+                if (insns.isEmpty())
                     throw new RuntimeException("Empty Intruction!!!  IMPOSSIBURU");
 
                 cache = "[" + Joiner.on(", ").join(insns) + "]";

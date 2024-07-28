@@ -46,9 +46,9 @@ import java.util.Map.Entry;
 
 public class GenSrgs extends CachedTask {
     @InputFiles
-    private final LinkedList<File> extraExcs = new LinkedList<File>();
+    private final LinkedList<File> extraExcs = new LinkedList<>();
     @InputFiles
-    private final LinkedList<File> extraSrgs = new LinkedList<File>();
+    private final LinkedList<File> extraSrgs = new LinkedList<>();
     //@formatter:off
     @InputFile
     private DelayedFile inSrg;
@@ -99,8 +99,8 @@ public class GenSrgs extends CachedTask {
     @TaskAction
     public void doTask() throws IOException {
         // csv data.  SRG -> MCP
-        HashMap<String, String> methods = new HashMap<String, String>();
-        HashMap<String, String> fields = new HashMap<String, String>();
+        HashMap<String, String> methods = new HashMap<>();
+        HashMap<String, String> fields = new HashMap<>();
         readCSVs(getMethodsCsv(), getFieldsCsv(), methods, fields);
 
         // Do SRG stuff

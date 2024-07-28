@@ -47,6 +47,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -164,33 +165,32 @@ public final class ContextualPatch {
 
     private void init() throws IOException {
         if (patchString != null) {
-            //Just read the string as is, without trying to read the magic/encoding as the string shuldn't need encoding!
+            //Just read the string as is, without trying to read the magic/encoding as the string shouldn't need encoding!
             patchReader = new BufferedReader(new StringReader(patchString));
             return;
         }
 
         patchReader = new BufferedReader(new FileReader(patchFile));
         String encoding = "ISO-8859-1";
-        String line = patchReader.readLine();
-        if (MAGIC.equals(line)) {
+        if (MAGIC.equals(patchReader.readLine())) {
             encoding = "utf8"; // NOI18N
-            line = patchReader.readLine();
+            patchReader.readLine(); // ignore first line... i guess?
         }
         patchReader.close();
 
         byte[] buffer = new byte[MAGIC.length()];
-        InputStream in = new FileInputStream(patchFile);
+        InputStream in = Files.newInputStream(patchFile.toPath());
         int read = in.read(buffer);
         in.close();
         if (read != -1 && MAGIC.equals(new String(buffer, StandardCharsets.UTF_8))) {  // NOI18N
             encoding = "utf8"; // NOI18N
         }
-        patchReader = new BufferedReader(new InputStreamReader(new FileInputStream(patchFile), encoding));
+        patchReader = new BufferedReader(new InputStreamReader(Files.newInputStream(patchFile.toPath()), encoding));
     }
 
     private PatchReport applyPatch(SinglePatch patch, boolean dryRun) throws IOException, PatchException {
         lastPatchedLine = 1;
-        List<HunkReport> ret = new ArrayList<HunkReport>();
+        List<HunkReport> ret = new ArrayList<>();
 
         if (this.contextProvider != null) {
             List<String> target = contextProvider.getData(patch.targetPath);
@@ -278,14 +278,14 @@ public final class ContextualPatch {
             return false;
         }
 
-        List<String> target = new ArrayList<String>(hunk.modifiedCount);
+        List<String> target = new ArrayList<>(hunk.modifiedCount);
         applyHunk(target, hunk, 0);
         return target.equals(originalFile);
     }
 
     private void backup(File target) throws IOException {
         if (target.exists()) {
-            copyStreamsCloseAll(new FileOutputStream(computeBackup(target)), new FileInputStream(target));
+            copyStreamsCloseAll(Files.newOutputStream(computeBackup(target).toPath()), Files.newInputStream(target.toPath()));
         }
     }
 
@@ -315,11 +315,11 @@ public final class ContextualPatch {
                 patch.targetFile.delete();
             } else {
                 byte[] content = Base64.decode(patch.hunks[0].lines);
-                copyStreamsCloseAll(new FileOutputStream(patch.targetFile), new ByteArrayInputStream(content));
+                copyStreamsCloseAll(Files.newOutputStream(patch.targetFile.toPath()), new ByteArrayInputStream(content));
             }
         } else {
-            try (PrintWriter w = new PrintWriter(new OutputStreamWriter(new FileOutputStream(patch.targetFile), getEncoding(patch.targetFile)))) {
-                if (lines.size() == 0) {
+            try (PrintWriter w = new PrintWriter(new OutputStreamWriter(Files.newOutputStream(patch.targetFile.toPath()), getEncoding(patch.targetFile)))) {
+                if (lines.isEmpty()) {
                     return;
                 }
                 for (String line : lines.subList(0, lines.size() - 1)) {
@@ -336,7 +336,7 @@ public final class ContextualPatch {
     private HunkReport applyHunk(List<String> target, Hunk hunk, int hunkID) throws PatchException {
         int idx = -1;
         int fuzz = 0;
-        for (; idx == -1 && fuzz <= this.maxFuzz; fuzz++) {
+        for (; fuzz <= this.maxFuzz; fuzz++) {
             idx = findHunkIndex(target, hunk, fuzz, hunkID);
             if (idx != -1) {
                 break;
@@ -369,7 +369,7 @@ public final class ContextualPatch {
     }
 
     /**
-     * @return true if the application succeeded
+     * @return HunkReport with success: true if the application succeeded
      */
     private HunkReport applyHunk(List<String> target, Hunk hunk, int idx, boolean dryRun, int fuzz, int hunkID) throws PatchException {
         int startIdx = idx;
@@ -388,7 +388,7 @@ public final class ContextualPatch {
                 }
                 boolean match = similar(target.get(idx), hunkLine.substring(1), hunkLine.charAt(0));
                 if (!match && fuzz != 0 && !isRemovalLine(hunkLine)) {
-                    match = (hunkIdx < fuzz || hunkIdx >= hunk.lines.size() - fuzz || match);
+                    match = hunkIdx < fuzz || hunkIdx >= hunk.lines.size() - fuzz;
                 }
                 if (!match) {
                     if (dryRun) {
@@ -430,7 +430,7 @@ public final class ContextualPatch {
     }
 
     private List<String> readFile(File target) throws IOException {
-        BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(target), getEncoding(target)));
+        BufferedReader r = new BufferedReader(new InputStreamReader(Files.newInputStream(target.toPath()), getEncoding(target)));
         try {
             List<String> lines = new ArrayList<>();
             String line;
@@ -483,12 +483,12 @@ public final class ContextualPatch {
     /**
      * Reads binary diff hunk.
      */
-    private void readBinaryPatchContent(SinglePatch patch) throws PatchException, IOException {
+    private void readBinaryPatchContent(SinglePatch patch) throws IOException {
         List<Hunk> hunks = new ArrayList<>();
         Hunk hunk = new Hunk();
         while (true) {
             String line = readPatchLine();
-            if (line == null || line.startsWith("Index:") || line.length() == 0) {
+            if (line == null || line.startsWith("Index:") || line.isEmpty()) {
                 unreadPatchLine();
                 break;
             }
@@ -506,7 +506,7 @@ public final class ContextualPatch {
                 }
             }
         }
-        patch.hunks = hunks.toArray(new Hunk[hunks.size()]);
+        patch.hunks = hunks.toArray(new Hunk[0]);
     }
 
     /**
@@ -539,14 +539,12 @@ public final class ContextualPatch {
                     hunk.lines.add("+" + line.substring(2));
                 } else if (line.startsWith("< ")) {
                     hunk.lines.add("-" + line.substring(2));
-                } else if (line.startsWith("---")) {
-                    // ignore
-                } else {
+                } else if (!line.startsWith("---")) {
                     throw new PatchException("Invalid hunk line: " + line);
                 }
             }
         }
-        patch.hunks = hunks.toArray(new Hunk[hunks.size()]);
+        patch.hunks = hunks.toArray(new Hunk[0]);
     }
 
     private void parseNormalRange(Hunk hunk, Matcher m) {
@@ -584,13 +582,13 @@ public final class ContextualPatch {
             computeTargetPath(base, modified, patch);
         }
 
-        List<Hunk> hunks = new ArrayList<Hunk>();
+        List<Hunk> hunks = new ArrayList<>();
         Hunk hunk = null;
 
         int lineCount = -1;
         for (; ; ) {
             String line = readPatchLine();
-            if (line == null || line.length() == 0 || line.startsWith("Index:")) {
+            if (line == null || line.isEmpty() || line.startsWith("Index:")) {
                 unreadPatchLine();
                 break;
             } else if (line.startsWith("***************")) {
@@ -615,7 +613,7 @@ public final class ContextualPatch {
                 }
             }
         }
-        patch.hunks = hunks.toArray(new Hunk[hunks.size()]);
+        patch.hunks = hunks.toArray(new Hunk[0]);
         convertContextToUnified(patch);
     }
 
@@ -645,8 +643,8 @@ public final class ContextualPatch {
 
         int baseIdx = 0;
         int modifiedIdx = split + 1;
-        List<String> unifiedLines = new ArrayList<String>(hunk.lines.size());
-        for (; baseIdx < split || modifiedIdx < hunk.lines.size(); ) {
+        List<String> unifiedLines = new ArrayList<>(hunk.lines.size());
+        while (baseIdx < split || modifiedIdx < hunk.lines.size()) {
             String baseLine = baseIdx < split ? hunk.lines.get(baseIdx) : "~";
             String modifiedLine = modifiedIdx < hunk.lines.size() ? hunk.lines.get(modifiedIdx) : "~";
             if (baseLine.startsWith("- ")) {
@@ -705,12 +703,12 @@ public final class ContextualPatch {
             computeTargetPath(base, modified, patch);
         }
 
-        List<Hunk> hunks = new ArrayList<Hunk>();
+        List<Hunk> hunks = new ArrayList<>();
         Hunk hunk = null;
 
         for (; ; ) {
             String line = readPatchLine();
-            if (line == null || line.length() == 0 || line.startsWith("Index:")) {
+            if (line == null || line.isEmpty() || line.startsWith("Index:")) {
                 unreadPatchLine();
                 break;
             }
@@ -729,7 +727,7 @@ public final class ContextualPatch {
                 break;
             }
         }
-        patch.hunks = hunks.toArray(new Hunk[hunks.size()]);
+        patch.hunks = hunks.toArray(new Hunk[0]);
     }
 
     private void computeTargetPath(String base, String modified, SinglePatch patch) {

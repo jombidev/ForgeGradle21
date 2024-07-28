@@ -86,7 +86,7 @@ class TaskGenSubprojects extends DefaultTask {
 
     private void generateRootBuild(File output) throws IOException {
         StringBuilder builder = new StringBuilder();
-        int start = 0;
+        int start;
         int end = 0;
         while ((start = resource.indexOf("@@", end)) != -1) {
             builder.append(resource.subSequence(end, start));
@@ -97,22 +97,27 @@ class TaskGenSubprojects extends DefaultTask {
                 String id = resource.substring(start + 2, end);
                 end += 2;
 
-                if ("repositories".equals(id)) {
-                    for (Repo repo : repositories) {
-                        lines(builder, 2,
-                                "maven {",
-                                "    name '" + repo.name + "'",
-                                "    url '" + repo.url + "'",
-                                "}");
-                    }
-                } else if ("dependencies".equals(id)) {
-                    for (String dep : dependencies) {
-                        append(builder, INDENT, INDENT, dep, NEWLINE);
-                    }
-                } else if ("javaLevel".equals(id)) {
-                    builder.append(getJavaLevel());
-                } else {
-                    this.getProject().getLogger().lifecycle("Unknown subproject key: " + id);
+                switch (id) {
+                    case "repositories":
+                        for (Repo repo : repositories) {
+                            lines(builder, 2,
+                                    "maven {",
+                                    "    name '" + repo.name + "'",
+                                    "    url '" + repo.url + "'",
+                                    "}");
+                        }
+                        break;
+                    case "dependencies":
+                        for (String dep : dependencies) {
+                            append(builder, INDENT, INDENT, dep, NEWLINE);
+                        }
+                        break;
+                    case "javaLevel":
+                        builder.append(getJavaLevel());
+                        break;
+                    default:
+                        this.getProject().getLogger().lifecycle("Unknown subproject key: " + id);
+                        break;
                 }
             }
         }
@@ -120,7 +125,7 @@ class TaskGenSubprojects extends DefaultTask {
         if (end != -1)
             builder.append(resource.subSequence(end, resource.length()));
 
-        Files.write(builder.toString(), output, Constants.CHARSET);
+        Files.asCharSink(output, Constants.CHARSET).write(builder.toString());
     }
 
     private static void generateRootSettings(File output, Collection<String> projects) throws IOException {
@@ -130,7 +135,7 @@ class TaskGenSubprojects extends DefaultTask {
         Joiner.on("', '").appendTo(builder, projects);
         builder.append("'");
 
-        Files.write(builder.toString(), output, Constants.CHARSET);
+        Files.asCharSink(output, Constants.CHARSET).write(builder.toString());
     }
 
     private static void generateProjectBuild(URI workspace, File output, DevProject project) throws IOException {
@@ -157,7 +162,7 @@ class TaskGenSubprojects extends DefaultTask {
         // @formatter:on
 
         // write
-        Files.write(builder.toString(), output, Constants.CHARSET);
+        Files.asCharSink(output, Constants.CHARSET).write(builder.toString());
     }
 
     private static void lines(StringBuilder out, int indentLevel, CharSequence... lines) {
@@ -181,7 +186,6 @@ class TaskGenSubprojects extends DefaultTask {
         return relative;
     }
 
-    @SuppressWarnings("serial")
     private static class Repo implements Serializable {
         public final String name, url;
 
@@ -192,7 +196,6 @@ class TaskGenSubprojects extends DefaultTask {
         }
     }
 
-    @SuppressWarnings("serial")
     private static class DevProject implements Serializable {
         //@formatter:off
         private final transient Project project;
@@ -254,7 +257,7 @@ class TaskGenSubprojects extends DefaultTask {
 
     @OutputFiles
     public List<File> getGeneratedFiles() {
-        List<File> files = new ArrayList<File>(2 + projects.size());
+        List<File> files = new ArrayList<>(2 + projects.size());
         File workspace = getWorkspaceDir();
         files.add(new File(workspace, "build.gradle"));
         files.add(new File(workspace, "settings.gradle"));

@@ -77,7 +77,7 @@ class TaskMergeFiles extends DefaultTask {
         }
 
         out.getParentFile().mkdirs();
-        Files.write(Joiner.on('\n').join(lines), out, Constants.CHARSET);
+        Files.asCharSink(out, Constants.CHARSET).write(Joiner.on('\n').join(lines));
     }
 
     public File getOutSrg() {

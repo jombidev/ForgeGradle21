@@ -19,46 +19,16 @@
  */
 package net.minecraftforge.gradle.tasks;
 
-import static org.objectweb.asm.Opcodes.ACC_FINAL;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
-import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.zip.ZipFile;
-
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskAction;
-
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
-
 import de.oceanlabs.mcp.mcinjector.LVTNaming;
 import de.oceanlabs.mcp.mcinjector.MCInjectorImpl;
 import groovy.lang.Closure;
-import net.md_5.specialsource.AccessMap;
-import net.md_5.specialsource.Jar;
-import net.md_5.specialsource.JarMapping;
-import net.md_5.specialsource.JarRemapper;
-import net.md_5.specialsource.RemapperProcessor;
+import net.md_5.specialsource.*;
 import net.md_5.specialsource.provider.JarProvider;
 import net.md_5.specialsource.provider.JointProvider;
 import net.minecraftforge.gradle.common.Constants;
@@ -67,6 +37,18 @@ import net.minecraftforge.gradle.util.caching.CachedTask;
 import net.minecraftforge.gradle.util.json.JsonFactory;
 import net.minecraftforge.gradle.util.json.MCInjectorStruct;
 import net.minecraftforge.gradle.util.json.MCInjectorStruct.InnerClass;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.*;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.zip.ZipFile;
+
+import static org.objectweb.asm.Opcodes.*;
 
 public class DeobfuscateJar extends CachedTask {
     @InputFile
@@ -97,7 +79,7 @@ public class DeobfuscateJar extends CachedTask {
     private Object outJar;
 
     @InputFiles
-    private ArrayList<Object> ats = Lists.newArrayList();
+    private final ArrayList<Object> ats = Lists.newArrayList();
 
     private Object log;
 
@@ -108,7 +90,7 @@ public class DeobfuscateJar extends CachedTask {
         File out = getOutJar();
 
         // make the ATs list.. its a Set to avoid duplication.
-        Set<File> ats = new HashSet<File>();
+        Set<File> ats = new HashSet<>();
         for (Object obj : this.ats) {
             ats.add(getProject().file(obj).getCanonicalFile());
         }
@@ -137,7 +119,7 @@ public class DeobfuscateJar extends CachedTask {
         getLogger().info("Using AccessTransformers...");
         //Make SS shutup about access maps
         for (File at : ats) {
-            getLogger().info("" + at);
+            getLogger().info("{}", at);
             accessMap.loadAccessTransformer(at);
         }
         //        System.setOut(tmp);
@@ -161,7 +143,7 @@ public class DeobfuscateJar extends CachedTask {
         remapper.remapJar(input, outJar);
 
         // throw error for broken AT lines
-        if (accessMap.brokenLines.size() > 0 && failOnAtError) {
+        if (!accessMap.brokenLines.isEmpty() && failOnAtError) {
             getLogger().error("{} Broken Access Transformer lines:", accessMap.brokenLines.size());
             for (String line : accessMap.brokenLines.values()) {
                 getLogger().error(" ---  {}", line);
@@ -212,11 +194,11 @@ public class DeobfuscateJar extends CachedTask {
         if (getJson != null) {
             final Map<String, MCInjectorStruct> struct = JsonFactory.loadMCIJson(getJson);
             for (File at : ats) {
-                getLogger().info("loading AT: " + at.getCanonicalPath());
+                getLogger().info("loading AT: {}", at.getCanonicalPath());
 
-                Files.readLines(at, Charset.defaultCharset(), new LineProcessor<Object>() {
+                Files.asCharSource(at, Charset.defaultCharset()).readLines(new LineProcessor<Object>() {
                     @Override
-                    public boolean processLine(String line) throws IOException {
+                    public boolean processLine(String line) {
                         if (line.indexOf('#') != -1)
                             line = line.substring(0, line.indexOf('#'));
                         line = line.trim().replace('.', '/');
@@ -256,11 +238,11 @@ public class DeobfuscateJar extends CachedTask {
             Files.write(JsonFactory.GSON.toJson(struct).getBytes(), jsonTmp);
         }
 
-        getLogger().debug("INPUT: " + inJar);
-        getLogger().debug("OUTPUT: " + outJar);
-        getLogger().debug("CONFIG: " + config);
-        getLogger().debug("JSON: " + json);
-        getLogger().debug("LOG: " + log);
+        getLogger().debug("INPUT: {}", inJar);
+        getLogger().debug("OUTPUT: {}", outJar);
+        getLogger().debug("CONFIG: {}", config);
+        getLogger().debug("JSON: {}", json);
+        getLogger().debug("LOG: {}", log);
         getLogger().debug("PARAMS: true");
 
         MCInjectorImpl.process(inJar.getCanonicalPath(),
@@ -277,8 +259,7 @@ public class DeobfuscateJar extends CachedTask {
     }
 
     private void removeUnknownClasses(File inJar, Map<String, MCInjectorStruct> config) throws IOException {
-        ZipFile zip = new ZipFile(inJar);
-        try {
+        try (ZipFile zip = new ZipFile(inJar)) {
             Iterator<Map.Entry<String, MCInjectorStruct>> entries = config.entrySet().iterator();
             while (entries.hasNext()) {
                 Map.Entry<String, MCInjectorStruct> entry = entries.next();
@@ -305,8 +286,6 @@ public class DeobfuscateJar extends CachedTask {
                     }
                 }
             }
-        } finally {
-            zip.close();
         }
     }
 
@@ -393,7 +372,6 @@ public class DeobfuscateJar extends CachedTask {
      *
      * @return Object that will resolve to
      */
-    @SuppressWarnings("serial")
     public Closure<File> getDelayedOutput() {
         return new Closure<File>(DeobfuscateJar.class) {
             public File call() {
@@ -417,9 +395,7 @@ public class DeobfuscateJar extends CachedTask {
      * @param objs access transformers
      */
     public void addAts(Object... objs) {
-        for (Object object : objs) {
-            ats.add(object);
-        }
+        Collections.addAll(ats, objs);
     }
 
     /**
@@ -463,9 +439,9 @@ public class DeobfuscateJar extends CachedTask {
             for (File f : renameCsvs) {
                 if (f == null)
                     continue;
-                Files.readLines(f, Charsets.UTF_8, new LineProcessor<String>() {
+                Files.asCharSource(f, Charsets.UTF_8).readLines(new LineProcessor<String>() {
                     @Override
-                    public boolean processLine(String line) throws IOException {
+                    public boolean processLine(String line) {
                         String[] pts = line.split(",");
                         if (!"searge".equals(pts[0])) {
                             renames.put(pts[0], pts[1]);

@@ -26,6 +26,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class WriteCacheAction implements Action<Task> {
@@ -50,13 +52,11 @@ public class WriteCacheAction implements Action<Task> {
             File outFile = task.getProject().file(annot.getValue(task));
             if (outFile.exists()) {
                 File hashFile = CacheUtil.getHashFile(outFile);
-                Files.write(CacheUtil.getHashes(annot, inputs, task), hashFile, Constants.CHARSET);
+                Files.asCharSink(hashFile, Constants.CHARSET).write(CacheUtil.getHashes(annot, inputs, task));
             }
-        }
-        // error? spit it and do the task.
-        catch (Exception e) {
-            Throwables.propagate(e);
+        } catch (NoSuchFieldException | InvocationTargetException | NoSuchMethodException | IllegalAccessException | IOException e) {
+            // error? spit it and do the task.
+            Throwables.throwIfUnchecked(e);
         }
     }
-
 }

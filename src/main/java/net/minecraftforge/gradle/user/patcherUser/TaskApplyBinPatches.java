@@ -36,6 +36,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,12 +72,9 @@ public class TaskApplyBinPatches extends CachedTask {
             getOutJar().delete();
         }
 
-        ZipFile in = new ZipFile(getInJar());
-        ZipInputStream classesIn = new ZipInputStream(new FileInputStream(getClassJar()));
-        final ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(getOutJar())));
-        final HashSet<String> entries = new HashSet<String>();
+        final HashSet<String> entries = new HashSet<>();
 
-        try {
+        try (ZipFile in = new ZipFile(getInJar()); ZipInputStream classesIn = new ZipInputStream(Files.newInputStream(getClassJar().toPath())); ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(Files.newOutputStream(getOutJar().toPath())))) {
             // DO PATCHES
             log("Patching Class:");
             for (ZipEntry e : Collections.list(in.entries())) {
@@ -112,7 +110,7 @@ public class TaskApplyBinPatches extends CachedTask {
             }
 
             // COPY DATA
-            ZipEntry entry = null;
+            ZipEntry entry;
             while ((entry = classesIn.getNextEntry()) != null) {
                 if (entries.contains(entry.getName()))
                     continue;
@@ -139,15 +137,11 @@ public class TaskApplyBinPatches extends CachedTask {
                             entries.add(name);
                         }
                     } catch (IOException e) {
-                        Throwables.propagateIfPossible(e);
+                        Throwables.throwIfUnchecked(e);
                     }
                 }
 
             });
-        } finally {
-            classesIn.close();
-            in.close();
-            out.close();
         }
     }
 
@@ -158,17 +152,17 @@ public class TaskApplyBinPatches extends CachedTask {
     }
 
     public void setup() {
-        Pattern matcher = Pattern.compile(String.format("binpatch/merged/.*.binpatch"));
+        Pattern matcher = Pattern.compile("binpatch/merged/.*.binpatch");
 
         JarInputStream jis;
         try {
-            LzmaInputStream binpatchesDecompressed = new LzmaInputStream(new FileInputStream(getPatches()), new Decoder());
+            LzmaInputStream binpatchesDecompressed = new LzmaInputStream(Files.newInputStream(getPatches().toPath()), new Decoder());
             ByteArrayOutputStream jarBytes = new ByteArrayOutputStream();
             JarOutputStream jos = new JarOutputStream(jarBytes);
             Pack200.newUnpacker().unpack(binpatchesDecompressed, jos);
             jis = new JarInputStream(new ByteArrayInputStream(jarBytes.toByteArray()));
-        } catch (Exception e) {
-            throw Throwables.propagate(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
         log("Reading Patches:");
@@ -185,7 +179,7 @@ public class TaskApplyBinPatches extends CachedTask {
                 } else {
                     jis.closeEntry();
                 }
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
         } while (true);
         log("Read %d binary patches", patchlist.size());

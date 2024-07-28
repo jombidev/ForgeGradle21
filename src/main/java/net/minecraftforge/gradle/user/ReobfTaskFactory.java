@@ -24,9 +24,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import net.minecraftforge.gradle.common.Constants;
 import net.minecraftforge.gradle.util.GradleConfigurationException;
-import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.bundling.Jar;
@@ -41,7 +39,6 @@ public class ReobfTaskFactory implements NamedDomainObjectFactory<IReobfuscator>
         this.plugin = plugin;
     }
 
-    @SuppressWarnings("serial")
     @Override
     public IReobfuscator create(final String jarName) {
         String name = "reobf" + Character.toUpperCase(jarName.charAt(0)) + jarName.substring(1);
@@ -62,13 +59,10 @@ public class ReobfTaskFactory implements NamedDomainObjectFactory<IReobfuscator>
         plugin.setupReobf(wrapper);
 
         // do after-Evaluate resolution, for the same of good error reporting
-        plugin.project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project arg0) {
-                Task jar = plugin.project.getTasks().getByName(jarName);
-                if (!(jar instanceof Jar)) {
-                    throw new GradleConfigurationException(jarName + "  is not a jar task. Can only reobf jars!");
-                }
+        plugin.project.afterEvaluate(arg0 -> {
+            Task jar = plugin.project.getTasks().getByName(jarName);
+            if (!(jar instanceof Jar)) {
+                throw new GradleConfigurationException(jarName + "  is not a jar task. Can only reobf jars!");
             }
         });
 
@@ -204,8 +198,8 @@ public class ReobfTaskFactory implements NamedDomainObjectFactory<IReobfuscator>
             warnDeprecation("useNotchSrg()", "mappingType");
         }
 
-        private void warnDeprecation(String old, String new_) {
-            plugin.project.getLogger().warn("Warning, {} is deprecated! You should use {} instead.", old, new_);
+        private void warnDeprecation(String old, String newName) {
+            plugin.project.getLogger().warn("Warning, {} is deprecated! You should use {} instead.", old, newName);
         }
     }
 }

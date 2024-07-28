@@ -64,7 +64,7 @@ public class EtagDownloadTask extends DefaultTask {
 
         String etag;
         if (etagFile.exists()) {
-            etag = Files.toString(etagFile, Charsets.UTF_8);
+            etag = Files.asCharSource(etagFile, Charsets.UTF_8).read();
         } else {
             etag = "";
         }
@@ -79,7 +79,7 @@ public class EtagDownloadTask extends DefaultTask {
 
             switch (con.getResponseCode()) {
                 case 404: // file not found.... duh...
-                    error("" + url + "  404'ed!");
+                    error(url + "  404'ed!");
                     break;
                 case 304: // content is the same.
                     this.setDidWork(false);
@@ -94,7 +94,7 @@ public class EtagDownloadTask extends DefaultTask {
                     // write etag
                     etag = con.getHeaderField("ETag");
                     if (!Strings.isNullOrEmpty(etag)) {
-                        Files.write(etag, etagFile, Charsets.UTF_8);
+                        Files.asCharSink(etagFile, Charsets.UTF_8).write(etag);
                     }
 
                     break;

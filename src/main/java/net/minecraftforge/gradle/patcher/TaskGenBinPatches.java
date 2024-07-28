@@ -22,7 +22,6 @@ package net.minecraftforge.gradle.patcher;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -78,12 +77,12 @@ class TaskGenBinPatches extends DefaultTask {
     private Object runBinPatches;
     //@formatter:on
 
-    private List<Object> patchSets = Lists.newArrayList();
-    private HashMap<String, String> obfMapping = new HashMap<String, String>();
-    private HashMap<String, String> srgMapping = new HashMap<String, String>();
-    private Multimap<String, String> innerClasses = ArrayListMultimap.create();
-    private Set<String> patchedFiles = new HashSet<String>();
-    private Delta delta = new Delta();
+    private final List<Object> patchSets = Lists.newArrayList();
+    private final HashMap<String, String> obfMapping = new HashMap<>();
+    private final HashMap<String, String> srgMapping = new HashMap<>();
+    private final Multimap<String, String> innerClasses = ArrayListMultimap.create();
+    private final Set<String> patchedFiles = new HashSet<>();
+    private final Delta delta = new Delta();
 
     //@formatter:off
     public TaskGenBinPatches() {
@@ -110,8 +109,8 @@ class TaskGenBinPatches extends DefaultTask {
             }
         }
 
-        HashMap<String, byte[]> runtime = new HashMap<String, byte[]>();
-        HashMap<String, byte[]> devtime = new HashMap<String, byte[]>();
+        HashMap<String, byte[]> runtime = new HashMap<>();
+        HashMap<String, byte[]> devtime = new HashMap<>();
 
         File dirtyJar = getDirtyJar();
 
@@ -139,12 +138,11 @@ class TaskGenBinPatches extends DefaultTask {
     }
 
     private void loadMappings() throws Exception {
-        Files.readLines(getSrg(), Charset.defaultCharset(), new LineProcessor<String>() {
-
-            Splitter splitter = Splitter.on(CharMatcher.anyOf(": ")).omitEmptyStrings().trimResults();
+        Files.asCharSource(getSrg(), Charset.defaultCharset()).readLines(new LineProcessor<String>() {
+            final Splitter splitter = Splitter.on(CharMatcher.anyOf(": ")).omitEmptyStrings().trimResults();
 
             @Override
-            public boolean processLine(String line) throws IOException {
+            public boolean processLine(String line) {
                 if (!line.startsWith("CL")) {
                     return true;
                 }

@@ -58,7 +58,7 @@ public class RemapSources extends AbstractEditJarTask {
 
     private static final Pattern SRG_FINDER = Pattern.compile("func_[0-9]+_[a-zA-Z_]+|field_[0-9]+_[a-zA-Z_]+|p_[\\w]+_\\d+_\\b");
     private static final Pattern METHOD = Pattern.compile("^((?: {4})+|\\t+)(?:[\\w$.\\[\\]]+ )+(func_[0-9]+_[a-zA-Z_]+)\\(");
-    private static final Pattern FIELD = Pattern.compile("^((?: {4})+|\\t+)(?:[\\w$.\\[\\]]+ )+(field_[0-9]+_[a-zA-Z_]+) *(?:=|;)");
+    private static final Pattern FIELD = Pattern.compile("^((?: {4})+|\\t+)(?:[\\w$.\\[\\]]+ )+(field_[0-9]+_[a-zA-Z_]+) *[=;]");
 
     @Override
     public void doStuffBefore() throws Exception {
@@ -90,7 +90,7 @@ public class RemapSources extends AbstractEditJarTask {
 
     @Override
     public String asRead(String name, String text) {
-        ArrayList<String> newLines = new ArrayList<String>();
+        ArrayList<String> newLines = new ArrayList<>();
         for (String line : Constants.lines(text)) {
             // basically all this code is to find the javadocs for a field ebfore replacing it.
             // if we arnt doing javadocs.. screw dat.
@@ -190,11 +190,11 @@ public class RemapSources extends AbstractEditJarTask {
     }
 
     @Override
-    public void doStuffMiddle(Map<String, String> sourceMap, Map<String, byte[]> resourceMap) throws Exception {
+    public void doStuffMiddle(Map<String, String> sourceMap, Map<String, byte[]> resourceMap) {
     }
 
     @Override
-    public void doStuffAfter() throws Exception {
+    public void doStuffAfter() {
     }
 
 }

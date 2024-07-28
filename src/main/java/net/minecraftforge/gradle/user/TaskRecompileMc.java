@@ -32,8 +32,6 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.*;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Set;
 import java.util.jar.JarOutputStream;
@@ -58,26 +56,26 @@ public class TaskRecompileMc extends CachedTask {
 
     private static String getExtPath() {
         String currentExtDirs = System.getProperty("java.ext.dirs");
-        String newExtDirs = "";
+        StringBuilder newExtDirs = new StringBuilder();
         String[] parts = currentExtDirs.split(File.pathSeparator);
         if (parts.length > 0) {
             String lastPart = parts[parts.length - 1];
             for (String part : parts) {
                 if (!part.equals("/System/Library/Java/Extensions")) {
-                    newExtDirs += part;
+                    newExtDirs.append(part);
                     if (!part.equals(lastPart)) {
-                        newExtDirs += File.pathSeparator;
+                        newExtDirs.append(File.pathSeparator);
                     }
                 }
             }
         }
-        System.setProperty("java.ext.dirs", newExtDirs);
-        return newExtDirs;
+        System.setProperty("java.ext.dirs", newExtDirs.toString());
+        return newExtDirs.toString();
     }
 
     private static void extractSources(File tempDir, File inJar) throws IOException {
-        ZipInputStream zin = new ZipInputStream(new FileInputStream(inJar));
-        ZipEntry entry = null;
+        ZipInputStream zin = new ZipInputStream(java.nio.file.Files.newInputStream(inJar.toPath()));
+        ZipEntry entry;
 
         while ((entry = zin.getNextEntry()) != null) {
             // we dont care about directories.. we can make em later when needed
@@ -134,7 +132,7 @@ public class TaskRecompileMc extends CachedTask {
         Set<String> elementsAdded = Sets.newHashSet();
 
         // make output
-        JarOutputStream zout = new JarOutputStream(new FileOutputStream(outJar));
+        JarOutputStream zout = new JarOutputStream(java.nio.file.Files.newOutputStream(outJar.toPath()));
 
         Visitor visitor = new Visitor(zout, elementsAdded);
 
@@ -207,7 +205,7 @@ public class TaskRecompileMc extends CachedTask {
                 ZipEntry entry = new ZipEntry(name);
                 zout.putNextEntry(entry);
             } catch (IOException e) {
-                Throwables.propagate(e);
+                Throwables.throwIfUnchecked(e);
             }
         }
 
@@ -224,7 +222,7 @@ public class TaskRecompileMc extends CachedTask {
 
                 file.copyTo(zout);
             } catch (IOException e) {
-                Throwables.propagate(e);
+                Throwables.throwIfUnchecked(e);
             }
         }
     }

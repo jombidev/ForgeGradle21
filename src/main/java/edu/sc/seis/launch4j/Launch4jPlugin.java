@@ -9,7 +9,6 @@ import net.minecraftforge.gradle.common.Constants;
 import net.minecraftforge.gradle.tasks.EtagDownloadTask;
 import net.minecraftforge.gradle.tasks.ExtractTask;
 
-import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -88,25 +87,21 @@ public class Launch4jPlugin implements Plugin<Project> {
         extractTask.from(input);
         extractTask.into(output);
 
-        extractTask.doLast(new Action<Task>() {
+        extractTask.doLast(task -> {
+            FileTree tree = project.fileTree(output.getPath() + "/bin");
+            tree.visit(new FileVisitor() {
+                @Override
+                public void visitDir(FileVisitDetails dirDetails) {
+                }
 
-            @Override
-            public void execute(Task task) {
-                FileTree tree = project.fileTree(output.getPath() + "/bin");
-                tree.visit(new FileVisitor() {
-                    @Override
-                    public void visitDir(FileVisitDetails dirDetails) {
+                @Override
+                public void visitFile(FileVisitDetails fileDetails) {
+                    if (!fileDetails.getFile().canExecute()) {
+                        boolean worked = fileDetails.getFile().setExecutable(true);
+                        project.getLogger().info("Setting file +X {} : {}", worked, fileDetails.getPath());
                     }
-
-                    @Override
-                    public void visitFile(FileVisitDetails fileDetails) {
-                        if (!fileDetails.getFile().canExecute()) {
-                            boolean worked = fileDetails.getFile().setExecutable(true);
-                            project.getLogger().info("Setting file +X " + worked + " : " + fileDetails.getPath());
-                        }
-                    }
-                });
-            }
+                }
+            });
         });
 
         return extractTask;
@@ -120,7 +115,6 @@ public class Launch4jPlugin implements Plugin<Project> {
         return task;
     }
 
-    @SuppressWarnings("serial")
     private Task addCopyToLibTask() {
         final Sync task = makeTask(TASK_LIB_COPY_NAME, Sync.class);
         task.setDescription("Copies the project dependency jars in the lib directory.");
@@ -141,16 +135,13 @@ public class Launch4jPlugin implements Plugin<Project> {
         final JavaExec task = makeTask(TASK_RUN_NAME, JavaExec.class);
         task.setDescription("Runs launch4j to generate an .exe file");
         task.setGroup(LAUNCH4J_GROUP);
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
-                Launch4jPluginExtension ext = ((Launch4jPluginExtension) task.getProject().getExtensions().getByName(Launch4jPlugin.LAUNCH4J_CONFIGURATION_NAME));
+        project.afterEvaluate(project -> {
+            Launch4jPluginExtension ext = ((Launch4jPluginExtension) task.getProject().getExtensions().getByName(Launch4jPlugin.LAUNCH4J_CONFIGURATION_NAME));
 
-                task.setMain("net.sf.launch4j.Main");
-                task.args(project.getBuildDir() + "/" + ext.getOutputDir() + "/" + ext.getXmlFileName());
-                task.setWorkingDir(project.file(ext.getChdir()));
-                task.setClasspath(project.fileTree(launch4JDir));
-            }
+            task.setMain("net.sf.launch4j.Main");
+            task.args(project.getBuildDir() + "/" + ext.getOutputDir() + "/" + ext.getXmlFileName());
+            task.setWorkingDir(project.file(ext.getChdir()));
+            task.setClasspath(project.fileTree(launch4JDir));
         });
         return task;
     }
@@ -162,7 +153,6 @@ public class Launch4jPlugin implements Plugin<Project> {
         return task;
     }
 
-    @SuppressWarnings({"serial", "unused"})
     private static CopySpec configureDistSpec(Project project) {
         CopySpec distSpec = project.copySpec(new Closure<Object>(Launch4jPlugin.class) {
         });
@@ -184,7 +174,7 @@ public class Launch4jPlugin implements Plugin<Project> {
 
     @SuppressWarnings("unchecked")
     public static <T extends Task> T makeTask(Project proj, String name, Class<T> type) {
-        HashMap<String, Object> map = new HashMap<String, Object>();
+        HashMap<String, Object> map = new HashMap<>();
         map.put("name", name);
         map.put("type", type);
         return (T) proj.task(map, name);

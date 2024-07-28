@@ -66,21 +66,21 @@ public class JsonFactory {
                 File parentFile = new File(inheritDir, v.inheritsFrom + ".json");
 
                 if (parentFile.exists()) {
-                    List<File> dirs = new ArrayList<File>(inheritanceDirs.length - 1);
+                    List<File> dirs = new ArrayList<>(inheritanceDirs.length - 1);
                     for (File toAdd : inheritanceDirs) {
                         if (toAdd != inheritDir) {
                             dirs.add(toAdd);
                         }
                     }
 
-                    Version parent = loadVersion(new File(inheritDir, v.inheritsFrom + ".json"), mcVersion, dirs.toArray(new File[dirs.size()]));
+                    Version parent = loadVersion(new File(inheritDir, v.inheritsFrom + ".json"), mcVersion, dirs.toArray(new File[0]));
                     v.extendFrom(parent);
                     found = true;
                     break;
                 }
             }
 
-            // still didnt find the inherited
+            // still didn't find the inherited
             if (!found) {
                 throw new FileNotFoundException("Inherited json file (" + v.inheritsFrom + ") not found! Maybe you are running in offline mode?");
             }
@@ -92,14 +92,14 @@ public class JsonFactory {
                 File parentFile = new File(inheritDir, mcVersion + ".json");
 
                 if (parentFile.exists()) {
-                    List<File> dirs = new ArrayList<File>(inheritanceDirs.length - 1);
+                    List<File> dirs = new ArrayList<>(inheritanceDirs.length - 1);
                     for (File toAdd : inheritanceDirs) {
                         if (toAdd != inheritDir) {
                             dirs.add(toAdd);
                         }
                     }
 
-                    Version parent = loadVersion(new File(inheritDir, mcVersion + ".json"), mcVersion, dirs.toArray(new File[dirs.size()]));
+                    Version parent = loadVersion(new File(inheritDir, mcVersion + ".json"), mcVersion, dirs.toArray(new File[0]));
                     v.extendFrom(parent);
                     found = true;
                     break;
@@ -128,9 +128,9 @@ public class JsonFactory {
 
     public static Map<String, MCInjectorStruct> loadMCIJson(File json) throws IOException {
         FileReader reader = new FileReader(json);
-        Map<String, MCInjectorStruct> ret = new LinkedHashMap<String, MCInjectorStruct>();
+        Map<String, MCInjectorStruct> ret = new LinkedHashMap<>();
 
-        JsonObject object = (JsonObject) new JsonParser().parse(reader);
+        JsonObject object = (JsonObject) JsonParser.parseReader(reader);
         reader.close();
 
         for (Entry<String, JsonElement> entry : object.entrySet()) {

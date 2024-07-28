@@ -60,27 +60,22 @@ public class CrowdinDownload extends DefaultTask {
     public CrowdinDownload() {
         super();
 
-        this.onlyIf(new Spec() {
+        this.onlyIf((Spec) arg0 -> {
+            CrowdinDownload task = (CrowdinDownload) arg0;
 
-            @Override
-            public boolean isSatisfiedBy(Object arg0) {
-                CrowdinDownload task = (CrowdinDownload) arg0;
-
-                // no API key? skip
-                if (Strings.isNullOrEmpty(task.getApiKey())) {
-                    getLogger().lifecycle("Crowdin api key is null, skipping task.");
-                    return false;
-                }
-
-                // offline? skip.
-                if (getProject().getGradle().getStartParameter().isOffline()) {
-                    getLogger().lifecycle("Gradle is in offline mode, skipping task.");
-                    return false;
-                }
-
-                return true;
+            // no API key? skip
+            if (Strings.isNullOrEmpty(task.getApiKey())) {
+                getLogger().lifecycle("Crowdin api key is null, skipping task.");
+                return false;
             }
 
+            // offline? skip.
+            if (getProject().getGradle().getStartParameter().isOffline()) {
+                getLogger().lifecycle("Gradle is in offline mode, skipping task.");
+                return false;
+            }
+
+            return true;
         });
     }
 
@@ -103,9 +98,9 @@ public class CrowdinDownload extends DefaultTask {
 
         try {
             con.connect();
-        } catch (Throwable e) {
-            // just in case people dont have internet at the moment.
-            Throwables.propagate(e);
+        } catch (IOException e) {
+            // just in case people don't have internet at the moment.
+            Throwables.throwIfUnchecked(e);
         }
 
         int reponse = con.getResponseCode();
@@ -134,7 +129,7 @@ public class CrowdinDownload extends DefaultTask {
                     continue;
                 }
 
-                getLogger().debug("Extracting file: " + entry.getName());
+                getLogger().debug("Extracting file: {}", entry.getName());
                 File out = new File(output, entry.getName());
                 Files.createParentDirs(out);
                 Files.touch(out);

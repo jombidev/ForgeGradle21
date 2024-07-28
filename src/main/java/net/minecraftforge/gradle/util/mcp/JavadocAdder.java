@@ -22,10 +22,7 @@ package net.minecraftforge.gradle.util.mcp;
 import com.google.common.base.Splitter;
 import net.minecraftforge.gradle.common.Constants;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public final class JavadocAdder {
     private JavadocAdder() { /* no constructing */ }
@@ -42,7 +39,7 @@ public final class JavadocAdder {
         StringBuilder builder = new StringBuilder();
 
         // split and wrap.
-        List<String> list = new LinkedList<String>();
+        List<String> list = new LinkedList<>();
         for (String line : Splitter.on("\\n").splitToList(javadoc)) {
             list.addAll(wrapText(line, 120 - (indent.length() + 3)));
         }
@@ -79,20 +76,20 @@ public final class JavadocAdder {
     private static List<String> wrapText(String text, int len) {
         // return empty array for null text
         if (text == null) {
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
 
         // return text if len is zero or less
         if (len <= 0) {
-            return new ArrayList<String>(Arrays.asList(text));
+            return new ArrayList<>(Collections.singletonList(text));
         }
 
         // return text if less than length
         if (text.length() <= len) {
-            return new ArrayList<String>(Arrays.asList(text));
+            return new ArrayList<>(Collections.singletonList(text));
         }
 
-        List<String> lines = new LinkedList<String>();
+        List<String> lines = new LinkedList<>();
         StringBuilder line = new StringBuilder();
         StringBuilder word = new StringBuilder();
         int tempNum;
@@ -139,7 +136,7 @@ public final class JavadocAdder {
             lines.add(line.toString());
         }
 
-        List<String> temp = new ArrayList<String>(lines.size());
+        List<String> temp = new ArrayList<>(lines.size());
         for (String s : lines) {
             temp.add(s.trim());
         }

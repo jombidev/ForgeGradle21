@@ -25,8 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,7 +47,6 @@ import org.gradle.api.tasks.TaskAction;
 
 import com.cloudbees.diff.Diff;
 import com.cloudbees.diff.Hunk;
-import com.cloudbees.diff.PatchException;
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
@@ -58,8 +55,8 @@ class TaskGenPatches extends DefaultTask {
     //@formatter:off
     @OutputDirectory
     private Object patchDir;
-    private final List<Object> originals = new LinkedList<Object>();
-    private final List<Object> changed = new LinkedList<Object>();
+    private final List<Object> originals = new LinkedList<>();
+    private final List<Object> changed = new LinkedList<>();
     @Input
     private String originalPrefix = "";
     @Input
@@ -72,10 +69,10 @@ class TaskGenPatches extends DefaultTask {
     }
     //@formatter:on
 
-    private Set<File> created = new HashSet<File>();
+    private final Set<File> created = new HashSet<>();
 
     @TaskAction
-    public void doTask() throws IOException, PatchException {
+    public void doTask() throws IOException {
         created.clear();
         getPatchDir().mkdirs();
 
@@ -101,8 +98,8 @@ class TaskGenPatches extends DefaultTask {
         return supplier;
     }
 
-    private void removeOld(File dir) throws IOException {
-        final ArrayList<File> directories = new ArrayList<File>();
+    private void removeOld(File dir) {
+        final ArrayList<File> directories = new ArrayList<>();
         FileTree tree = getProject().fileTree(dir);
 
         tree.visit(new FileVisitor() {
@@ -117,7 +114,7 @@ class TaskGenPatches extends DefaultTask {
                 try {
                     file = f.getFile().getCanonicalFile();
                     if (!created.contains(file)) {
-                        getLogger().debug("Removed patch: " + f.getRelativePath());
+                        getLogger().debug("Removed patch: {}", f.getRelativePath());
                         file.delete();
                     }
                 } catch (IOException e) {
@@ -127,19 +124,11 @@ class TaskGenPatches extends DefaultTask {
         });
 
         // We want things sorted in reverse order. Do that sub folders come before parents
-        Collections.sort(directories, new Comparator<File>() {
-            @Override
-            public int compare(File o1, File o2) {
-                int r = o1.compareTo(o2);
-                if (r < 0) return 1;
-                if (r > 0) return -1;
-                return 0;
-            }
-        });
+        directories.sort((o1, o2) -> Integer.compare(0, o1.compareTo(o2)));
 
         for (File f : directories) {
             if (f.listFiles().length == 0) {
-                getLogger().debug("Removing empty dir: " + f);
+                getLogger().debug("Removing empty dir: {}", f);
                 f.delete();
             }
         }
@@ -149,19 +138,14 @@ class TaskGenPatches extends DefaultTask {
         List<String> paths = original.gatherAll("");
         for (String path : paths) {
             path = path.replace('\\', '/');
-            InputStream o = original.getInput(path);
-            InputStream c = changed.getInput(path);
-            try {
+            try (InputStream o = original.getInput(path); InputStream c = changed.getInput(path)) {
                 processFile(path, o, c);
-            } finally {
-                if (o != null) o.close();
-                if (c != null) c.close();
             }
         }
     }
 
     public void processFile(String relative, InputStream original, InputStream changed) throws IOException {
-        getLogger().debug("Diffing: " + relative);
+        getLogger().debug("Diffing: {}", relative);
 
         File patchFile = new File(getPatchDir(), relative + ".patch").getCanonicalFile();
 
@@ -188,14 +172,14 @@ class TaskGenPatches extends DefaultTask {
 
             String olddiff = "";
             if (patchFile.exists()) {
-                olddiff = Files.toString(patchFile, Charsets.UTF_8);
+                olddiff = Files.asCharSource(patchFile, Charsets.UTF_8).read();
             }
 
             if (!olddiff.equals(unidiff)) {
-                getLogger().debug("Writing patch: " + patchFile);
+                getLogger().debug("Writing patch: {}", patchFile);
                 patchFile.getParentFile().mkdirs();
                 Files.touch(patchFile);
-                Files.write(unidiff, patchFile, Charsets.UTF_8);
+                Files.asCharSink(patchFile, Charsets.UTF_8).write(unidiff);
             } else {
                 getLogger().debug("Patch did not change");
             }
@@ -209,7 +193,7 @@ class TaskGenPatches extends DefaultTask {
     }
 
     public List<File> getOriginalSource() {
-        List<File> files = new LinkedList<File>();
+        List<File> files = new LinkedList<>();
         for (Object f : originals)
             files.add(getProject().file(f));
         return files;
@@ -225,7 +209,7 @@ class TaskGenPatches extends DefaultTask {
     }
 
     public List<File> getChangedSource() {
-        List<File> files = new LinkedList<File>();
+        List<File> files = new LinkedList<>();
         for (Object f : changed)
             files.add(getProject().file(f));
         return files;

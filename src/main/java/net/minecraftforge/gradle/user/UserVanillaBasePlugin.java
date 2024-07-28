@@ -21,8 +21,6 @@ package net.minecraftforge.gradle.user;
 
 import com.google.common.collect.ImmutableMap;
 import net.minecraftforge.gradle.common.Constants;
-import org.gradle.api.Action;
-import org.gradle.api.Project;
 
 import java.io.File;
 import java.util.List;
@@ -58,12 +56,9 @@ public abstract class UserVanillaBasePlugin<T extends UserBaseExtension> extends
     @Override
     protected void afterDecomp(final boolean isDecomp, final boolean useLocalCache, final String mcConfig) {
         // add MC repo to all projects
-        project.allprojects(new Action<Project>() {
-            @Override
-            public void execute(Project proj) {
-                String cleanRoot = CLEAN_ROOT + getJarName() + "/" + REPLACE_MC_VERSION + "/" + MCP_INSERT;
-                addFlatRepo(proj, "VanillaMcRepo", delayedFile(useLocalCache ? DIR_LOCAL_CACHE : cleanRoot).call());
-            }
+        project.allprojects(proj -> {
+            String cleanRoot = CLEAN_ROOT + getJarName() + "/" + REPLACE_MC_VERSION + "/" + MCP_INSERT;
+            addFlatRepo(proj, "VanillaMcRepo", delayedFile(useLocalCache ? DIR_LOCAL_CACHE : cleanRoot).call());
         });
 
         // add the Mc dep
@@ -109,13 +104,11 @@ public abstract class UserVanillaBasePlugin<T extends UserBaseExtension> extends
 
     @Override
     protected List<String> getClientRunArgs(T ext) {
-        List<String> out = ext.getResolvedClientRunArgs();
-        return out;
+        return ext.getResolvedClientRunArgs();
     }
 
     @Override
     protected List<String> getServerRunArgs(T ext) {
-        List<String> out = ext.getResolvedServerRunArgs();
-        return out;
+        return ext.getResolvedServerRunArgs();
     }
 }

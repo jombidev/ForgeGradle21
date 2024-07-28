@@ -20,9 +20,8 @@
 package net.minecraftforge.gradle.tasks;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -60,7 +59,7 @@ public abstract class AbstractEditJarTask extends CachedTask {
         doStuffBefore();
 
         if (storeJarInRam()) {
-            getLogger().debug("Reading jar: " + resolvedInJar);
+            getLogger().debug("Reading jar: {}", resolvedInJar);
 
             Map<String, String> sourceMap = Maps.newHashMap();
             Map<String, byte[]> resourceMap = Maps.newHashMap();
@@ -71,7 +70,7 @@ public abstract class AbstractEditJarTask extends CachedTask {
 
             saveJar(resolvedOutJar, sourceMap, resourceMap);
 
-            getLogger().debug("Saving jar: " + resolvedOutJar);
+            getLogger().debug("Saving jar: {}", resolvedOutJar);
         } else {
             copyJar(resolvedInJar, resolvedOutJar);
         }
@@ -120,9 +119,9 @@ public abstract class AbstractEditJarTask extends CachedTask {
      */
     protected abstract boolean storeJarInRam();
 
-    private final void readAndStoreJarInRam(File jar, Map<String, String> sourceMap, Map<String, byte[]> resourceMap) throws Exception {
-        ZipInputStream zin = new ZipInputStream(new FileInputStream(jar));
-        ZipEntry entry = null;
+    private void readAndStoreJarInRam(File jar, Map<String, String> sourceMap, Map<String, byte[]> resourceMap) throws Exception {
+        ZipInputStream zin = new ZipInputStream(Files.newInputStream(jar.toPath()));
+        ZipEntry entry;
         String fileStr;
 
         while ((entry = zin.getNextEntry()) != null) {
@@ -154,7 +153,7 @@ public abstract class AbstractEditJarTask extends CachedTask {
     protected static void saveJar(File output, Map<String, String> sourceMap, Map<String, byte[]> resourceMap) throws IOException {
         output.getParentFile().mkdirs();
 
-        JarOutputStream zout = new JarOutputStream(new FileOutputStream(output));
+        JarOutputStream zout = new JarOutputStream(Files.newOutputStream(output.toPath()));
 
         // write in resources
         for (Map.Entry<String, byte[]> entry : resourceMap.entrySet()) {
@@ -175,9 +174,9 @@ public abstract class AbstractEditJarTask extends CachedTask {
 
     private void copyJar(File input, File output) throws Exception {
         // begin reading jar
-        ZipInputStream zin = new ZipInputStream(new FileInputStream(input));
-        JarOutputStream zout = new JarOutputStream(new FileOutputStream(output));
-        ZipEntry entry = null;
+        ZipInputStream zin = new ZipInputStream(Files.newInputStream(input.toPath()));
+        JarOutputStream zout = new JarOutputStream(Files.newOutputStream(output.toPath()));
+        ZipEntry entry;
 
         while ((entry = zin.getNextEntry()) != null) {
             // no META or dirs. wel take care of dirs later.
@@ -198,7 +197,7 @@ public abstract class AbstractEditJarTask extends CachedTask {
                     zout.closeEntry();
                 }
             } catch (ZipException ex) {
-                getLogger().debug("Duplicate zip entry " + entry.getName() + " in " + input + " writing " + output);
+                getLogger().debug("Duplicate zip entry {} in {} writing {}", entry.getName(), input, output);
             }
         }
 

@@ -52,11 +52,11 @@ import com.google.common.io.Files;
 
 public class ApplyS2STask extends DefaultTask {
     @InputFiles
-    private final List<Object> srg = new LinkedList<Object>();
+    private final List<Object> srg = new LinkedList<>();
 
     @Optional
     @InputFiles
-    private final List<Object> exc = new LinkedList<Object>();
+    private final List<Object> exc = new LinkedList<>();
 
     @InputFile
     private Object rangeMap;
@@ -66,7 +66,7 @@ public class ApplyS2STask extends DefaultTask {
     private Object excModifiers;
 
     // stuff defined on the tasks..
-    private final List<Object> in = new LinkedList<Object>();
+    private final List<Object> in = new LinkedList<>();
     private Object out;
 
     @TaskAction
@@ -101,6 +101,7 @@ public class ApplyS2STask extends DefaultTask {
         }
 
         getLogger().lifecycle("remapping source...");
+        //noinspection DataFlowIssue
         applyRangeMap(inSup, outSup, srg, exc, rangemap, rangelog);
 
 
@@ -174,7 +175,7 @@ public class ApplyS2STask extends DefaultTask {
 
             BufferedWriter writer = Files.newWriter(temp, Charsets.UTF_8);
             for (File f : srgs) {
-                getLogger().debug("  Reading SRG: " + f);
+                getLogger().debug("  Reading SRG: {}", f);
                 for (String line : Files.readLines(f, Charset.defaultCharset())) {
                     if (Strings.isNullOrEmpty(line) || line.startsWith("#"))
                         continue;
@@ -187,12 +188,12 @@ public class ApplyS2STask extends DefaultTask {
                         String name = pts[2].substring(pts[2].lastIndexOf('/') + 1);
                         if (name.startsWith("func_")) {
                             Boolean isStatic = statics.get(pts[0] + pts[1]);
-                            getLogger().debug("    MD: " + line);
+                            getLogger().debug("    MD: {}", line);
                             name = name.substring(5, name.indexOf('_', 5));
 
                             List<String> params = Lists.newArrayList();
-                            int idx = isStatic == null || !isStatic.booleanValue() ? 1 : 0;
-                            getLogger().debug("      Name: " + name + " Idx: " + idx);
+                            int idx = isStatic == null || !isStatic ? 1 : 0;
+                            getLogger().debug("      Name: {} Idx: {}", name, idx);
 
                             int i = 0;
                             boolean inArray = false;
@@ -233,7 +234,7 @@ public class ApplyS2STask extends DefaultTask {
                                 i++;
                             }
 
-                            if (params.size() > 0) {
+                            if (!params.isEmpty()) {
                                 writer.write(pts[2].substring(0, pts[2].lastIndexOf('/')));
                                 writer.write('.');
                                 writer.write(pts[2].substring(pts[2].lastIndexOf('/') + 1));
@@ -255,7 +256,7 @@ public class ApplyS2STask extends DefaultTask {
 
             return getProject().files(files.toArray());
         } catch (IOException e) {
-            Throwables.propagate(e);
+            Throwables.throwIfUnchecked(e);
         }
 
         return null;

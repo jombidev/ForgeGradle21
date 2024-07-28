@@ -26,7 +26,6 @@ import static net.minecraftforge.gradle.common.Constants.REPLACE_CACHE_DIR;
 
 public class UserConstants {
     public static final String CONFIG_MC = "forgeGradleMc";
-    // @formatter:on
     public static final String CONFIG_START = "forgeGradleGradleStart";
     public static final String CONFIG_PROVIDED = "provided";
     public static final String CONFIG_DEOBF_COMPILE = "deobfCompile";
@@ -69,11 +68,10 @@ public class UserConstants {
     static final String REPLACE_CLIENT_MAIN = "{RUN_CLIENT_MAIN}";
     static final String REPLACE_RUN_DIR = "{RUN_DIR}";
 
-    // @formatter:off
     private UserConstants() {
     }
 
-    public static final String getSourceSetFormatted(SourceSet sourceSet, String template) {
+    public static String getSourceSetFormatted(SourceSet sourceSet, String template) {
         String name = sourceSet.getName();
         name = name.substring(0, 1).toUpperCase() + name.substring(1);          // convert 1st char to upper case.
         return String.format(template, name);

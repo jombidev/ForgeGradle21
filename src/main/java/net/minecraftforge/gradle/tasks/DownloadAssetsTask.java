@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Files;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class DownloadAssetsTask extends DefaultTask {
     DelayedFile assetsDir;
 
@@ -129,12 +130,10 @@ public class DownloadAssetsTask extends DefaultTask {
         if (file.length() != size)
             return true;
 
-        if (!expectedHash.equalsIgnoreCase(Constants.hash(file, "SHA1")))
-            return true;
-
-        return false;
+        return !expectedHash.equalsIgnoreCase(Constants.hash(file, "SHA1"));
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static class GetAssetTask implements Callable<Boolean> {
         private static final Logger LOGGER = LoggerFactory.getLogger(GetAssetTask.class);
         private final Asset asset;
@@ -191,8 +190,7 @@ public class DownloadAssetsTask extends DefaultTask {
                     }
 
                 } catch (Exception e) {
-                    LOGGER.error("Error downloading asset (try {}) : {}", tryNum, asset.name);
-                    e.printStackTrace();
+                    LOGGER.error("Error downloading asset (try {}) : {}", tryNum, asset.name, e);
                     worked = false;
                 }
             }
