@@ -42,7 +42,6 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
     @Input
     private String config;
 
-    @Internal
     private final PatternSet patternSet = new PatternSet();
 
     @Input
