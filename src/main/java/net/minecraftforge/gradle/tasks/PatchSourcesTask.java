@@ -37,11 +37,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.*;
 
 import com.cloudbees.diff.PatchException;
 import com.google.common.base.Charsets;
@@ -296,7 +292,7 @@ public class PatchSourcesTask extends AbstractEditJarTask {
 
     @Optional
     @InputDirectory
-    private File getPatchesDir() {
+    public File getPatchesDir() {
         File patch = getPatches();
         if (patch.isDirectory())
             return getPatches();
@@ -306,7 +302,7 @@ public class PatchSourcesTask extends AbstractEditJarTask {
 
     @Optional
     @InputFile
-    private File getPatchesZip() {
+    public File getPatchesZip() {
         File patch = getPatches();
         if (patch.isDirectory())
             return null;
@@ -314,6 +310,7 @@ public class PatchSourcesTask extends AbstractEditJarTask {
             return getPatches();
     }
 
+    @Internal
     public File getPatches() {
         return getProject().file(patches);
     }
