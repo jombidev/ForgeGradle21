@@ -30,9 +30,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 public class TaskDepDummy extends DefaultTask {
+    @OutputFile
     private Object outputFile;
 
-    @OutputFile
     @TaskAction
     public void makeEmptyJar() throws IOException {
         File out = getOutputFile();
