@@ -20,6 +20,7 @@
 package net.minecraftforge.gradle.user;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
@@ -31,6 +32,7 @@ import java.util.jar.JarOutputStream;
 public class TaskDepDummy extends DefaultTask {
     private Object outputFile;
 
+    @OutputFile
     @TaskAction
     public void makeEmptyJar() throws IOException {
         File out = getOutputFile();
