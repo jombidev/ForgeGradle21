@@ -39,7 +39,6 @@ import org.junit.Test;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-import static com.google.common.base.StandardSystemProperty.JAVA_IO_TMPDIR;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class MultiDirSupplierTest {
@@ -54,7 +53,7 @@ public class MultiDirSupplierTest {
 
         for (int i = 0; i < dirNum; i++) {
             // create and add dir
-            File dir = Files.createTempDirectory(JAVA_IO_TMPDIR.value()).toFile().getCanonicalFile();
+            File dir = Files.createTempDirectory("test").toFile().getCanonicalFile();
             dirs.add(dir);
 
             int fileNum = rand.nextInt(9) + 1; // 0-10

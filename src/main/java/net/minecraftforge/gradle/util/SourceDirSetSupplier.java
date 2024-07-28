@@ -28,6 +28,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.SourceDirectorySet;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +60,7 @@ public class SourceDirSetSupplier implements InputSupplier, OutputSupplier {
     public InputStream getInput(String relPath) {
         File f = getFile(relPath);
         try {
-            return f == null ? null : new FileInputStream(f);
+            return f == null ? null : Files.newInputStream(f.toPath());
         } catch (IOException e) {
             return null;
         }
@@ -79,7 +80,7 @@ public class SourceDirSetSupplier implements InputSupplier, OutputSupplier {
     public OutputStream getOutput(String relPath) {
         File f = getFile(relPath);
         try {
-            return f == null ? null : new FileOutputStream(f);
+            return f == null ? null : Files.newOutputStream(f.toPath());
         } catch (IOException e) {
             return null;
         }

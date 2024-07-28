@@ -28,7 +28,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.ClosureBackedAction;
 
 import java.io.File;
 import java.io.IOException;
@@ -83,7 +82,8 @@ public class LiteModTask extends DefaultTask {
     }
 
     public void json(Closure<?> configureClosure) throws IOException {
-        ClosureBackedAction.execute(this.getJson(), configureClosure);
+        getProject().configure(this.getJson(), configureClosure);
+//        ClosureBackedAction.execute(this.getJson(), configureClosure);
     }
 
     public String getBuildNumber() throws IOException {

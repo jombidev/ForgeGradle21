@@ -68,7 +68,7 @@ public class PatcherPlugin extends BasePlugin<PatcherExtension> {
 
             Delete cleanTask = maybeMakeTask(TASK_CLEAN, Delete.class);
             cleanTask.delete(getExtension().getDelayedWorkspaceDir());
-            cleanTask.delete(project.getBuildDir());
+            cleanTask.delete(project.getLayout().getBuildDirectory().getAsFile().get());
             cleanTask.setGroup(GROUP_FG);
             cleanTask.setDescription("Completely cleans the workspace for a fresh build. Deletes the 'build' folder and the specified workspaceDir");
 

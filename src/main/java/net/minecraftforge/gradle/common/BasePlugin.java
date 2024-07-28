@@ -86,14 +86,14 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 throw new RuntimeException("ForgeGradle 2.0 requires Gradle 5.1 or above.");
         }
 
-        if (project.getBuildDir().getAbsolutePath().contains("!")) {
+        if (project.getLayout().getBuildDirectory().getAsFile().get().getAbsolutePath().contains("!")) {
             project.getLogger().error("Build path has !, This will screw over a lot of java things as ! is used to denote archive paths, REMOVE IT if you want to continue");
             throw new RuntimeException("Build path contains !");
         }
 
         // set the obvious replacements
         replacer.putReplacement(REPLACE_CACHE_DIR, cacheFile("").getAbsolutePath());
-        replacer.putReplacement(REPLACE_BUILD_DIR, project.getBuildDir().getAbsolutePath());
+        replacer.putReplacement(REPLACE_BUILD_DIR, project.getLayout().getBuildDirectory().getAsFile().get().getAbsolutePath());
 
         // logging
         {

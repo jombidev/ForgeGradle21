@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.regex.Pattern;
 
 import org.gradle.api.Project;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 
 
 public class Launch4jPluginExtension implements Serializable {
@@ -53,19 +53,17 @@ public class Launch4jPluginExtension implements Serializable {
     private static final Pattern JAVA_VERSION_REGEX = Pattern.compile("\\d+(\\.\\d+){0,1}");
 
     public File getXmlOutFileForProject(Project project) {
-        return project.file(project.getBuildDir() + "/" + outputDir + "/" + xmlFileName);
+        return project.file(project.getLayout().getBuildDirectory().getAsFile().get() + "/" + outputDir + "/" + xmlFileName);
     }
 
     void initExtensionDefaults(Project project) {
         outfile = project.getName() + ".exe";
         version = (String) project.getVersion();
 
-        JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
-        if (javaConv != null) {
-            jreMinVersion = javaConv.getTargetCompatibility().toString();
-            if (JAVA_VERSION_REGEX.matcher(jreMinVersion).matches()) {
-                jreMinVersion = jreMinVersion + ".0";
-            }
+        JavaPluginExtension javaConv = project.getExtensions().getByType(JavaPluginExtension.class);
+        jreMinVersion = javaConv.getTargetCompatibility().toString();
+        if (JAVA_VERSION_REGEX.matcher(jreMinVersion).matches()) {
+            jreMinVersion = jreMinVersion + ".0";
         }
     }
 

@@ -23,8 +23,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
@@ -37,7 +37,7 @@ public class TaskDepDummy extends DefaultTask {
         out.getParentFile().mkdirs();
 
         // yup.. a dummy jar....
-        JarOutputStream stream = new JarOutputStream(new FileOutputStream(out));
+        JarOutputStream stream = new JarOutputStream(Files.newOutputStream(out.toPath()));
         stream.putNextEntry(new JarEntry("dummyThing"));
         stream.write(0xffffffff);
         stream.closeEntry();

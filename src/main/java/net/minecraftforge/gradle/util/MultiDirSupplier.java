@@ -24,6 +24,7 @@ import net.minecraftforge.srg2source.util.io.InputSupplier;
 import net.minecraftforge.srg2source.util.io.OutputSupplier;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
@@ -44,7 +45,7 @@ public class MultiDirSupplier implements InputSupplier, OutputSupplier {
     public OutputStream getOutput(String relPath) {
         File f = getFileFor(relPath);
         try {
-            return f == null ? null : new FileOutputStream(f);
+            return f == null ? null : Files.newOutputStream(f.toPath());
         } catch (IOException e) {
             return null;
         }
@@ -60,7 +61,7 @@ public class MultiDirSupplier implements InputSupplier, OutputSupplier {
     public InputStream getInput(String relPath) {
         File f = getFileFor(relPath);
         try {
-            return f == null ? null : new FileInputStream(f);
+            return f == null ? null : Files.newInputStream(f.toPath());
         } catch (IOException e) {
             return null;
         }
@@ -76,7 +77,7 @@ public class MultiDirSupplier implements InputSupplier, OutputSupplier {
             dirStack.push(root);
             int rootCut = root.getAbsolutePath().length() + 1; // +1 for the slash
 
-            while (dirStack.size() > 0) {
+            while (!dirStack.isEmpty()) {
                 for (File f : dirStack.pop().listFiles()) {
                     if (f.isDirectory())
                         dirStack.push(f);

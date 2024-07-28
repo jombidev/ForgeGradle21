@@ -37,9 +37,9 @@ public class McpCleanup {
     public static final Pattern CLEANUP_footer = Pattern.compile("\\s+$"); // Remove extra whitespace at end of file
     public static final Pattern CLEANUP_trailing = Pattern.compile("(?m)[ \\t]+$"); // Remove TRAILING whitespace
     public static final Pattern CLEANUP_package = Pattern.compile("(?m)^package ([\\w.]+);$"); // find package --- in quots since its a special word
-    public static final Pattern CLEANUP_import = Pattern.compile("(?m)^import (?:([\\w.]*?)\\.)?(?:[\\w]+);(?:\\r\\n|\\r|\\n)"); // package and class.
+    public static final Pattern CLEANUP_import = Pattern.compile("(?m)^import (?:([\\w.]*?)\\.)?[\\w]+;(?:\\r\\n|\\r|\\n)"); // package and class.
     public static final Pattern CLEANUP_newlines = Pattern.compile("(?m)^\\s*(?:\\r\\n|\\r|\\n){2,}"); // remove repeated blank lines   ?? JDT?
-    public static final Pattern CLEANUP_ifstarts = Pattern.compile("(?m)(^(?![\\s{}]*$).+(?:\\r\\n|\\r|\\n))((?:[ \\t]+)if.*)"); // add new line before IF statements
+    public static final Pattern CLEANUP_ifstarts = Pattern.compile("(?m)(^(?![\\s{}]*$).+(?:\\r\\n|\\r|\\n))([ \\t]+if.*)"); // add new line before IF statements
     // close up blanks in code like:
     // {
     //
@@ -51,7 +51,7 @@ public class McpCleanup {
     // }
     public static final Pattern CLEANUP_blockends = Pattern.compile("(?m)(?<=[;}])\\s+(?=(?:\\r\\n|\\r|\\n)\\s*})");
     // Remove GL comments and surrounding whitespace
-    public static final Pattern CLEANUP_gl = Pattern.compile("\\s*\\/\\*\\s*GL_[^*]+\\*\\/\\s*");
+    public static final Pattern CLEANUP_gl = Pattern.compile("\\s*/\\*\\s*GL_[^*]+\\*/\\s*");
     // convert unicode character constants back to integers
     public static final Pattern CLEANUP_unicode = Pattern.compile("'\\\\u([0-9a-fA-F]{4})'");
     // strip out Character.valueof
@@ -214,7 +214,7 @@ public class McpCleanup {
 
             while (matcher.find()) {
                 val = Integer.parseInt(matcher.group(1), 16);
-                // work around the replace('\u00a7', '$') call in MinecraftServer and a couple of '\u0000'
+                // work around the replace('§', '$') call in MinecraftServer and a couple of '\u0000'
                 if (val > 255) {
                     matcher.appendReplacement(buffer, Matcher.quoteReplacement("" + val));
                 }

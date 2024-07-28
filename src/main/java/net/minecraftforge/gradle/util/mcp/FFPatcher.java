@@ -55,7 +55,7 @@ public class FFPatcher {
     private static final String VALUE_FIELD_REGEX = "private static final %s\\[\\] [$\\w\\d]+ = new %s\\[\\]\\{.*?\\};";
 
     public static String processFile(String text) {
-        StringBuffer out = new StringBuffer();
+//        StringBuilder out = new StringBuilder();
 //        Matcher m = SYNTHETICS.matcher(text);
 //        while(m.find())
 //        {
@@ -245,7 +245,7 @@ public class FFPatcher {
         //String arg1 = _REGEXP['typecast'].sub(r'', match.group('arguments'))
         //String arg2 = _REGEXP['typecast'].sub(r'', match.group('arguments2'))
 
-        if (arg1.equals(arg2) && arg1.equals(""))
+        if (arg1.equals(arg2) && arg1.isEmpty())
             return "";
 
         String[] args = match.group("arguments").split(", ");

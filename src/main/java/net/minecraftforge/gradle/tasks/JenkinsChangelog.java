@@ -138,7 +138,7 @@ public class JenkinsChangelog extends DefaultTask {
             data = read("/api/python?tree=allBuilds[result,number,actions[text],changeSet[items[author[fullName],comment]]]");//&pretty=true");
             data = data.replace("\"result\":None", "\"result\":\"\"");
             data = cleanJson(data, "None"); //This kills Gson for some reason
-            data = cleanJson(data, "{}"); //Empty entries, just for sanitie’s sake
+            data = cleanJson(data, "{}"); //Empty entries, just for sake
 
             List<Map<String, Object>> json = (List<Map<String, Object>>) new Gson().fromJson(data, Map.class).get("allBuilds");
             json.sort((o1, o2) -> (int) ((Double) o1.get("number") - (Double) o2.get("number")));
@@ -198,7 +198,7 @@ public class JenkinsChangelog extends DefaultTask {
             boolean versioned = false;
             data = read("/lastBuild/api/python?tree=number,changeSet[items[author[fullName],comment]]");//&pretty=true");
             data = cleanJson(data, "None"); //This kills Gson for some reason
-            data = cleanJson(data, "{}"); //Empty entries, just for sanitie’s sake
+            data = cleanJson(data, "{}"); //Empty entries
 
             Map<String, Object> build = (Map<String, Object>) new Gson().fromJson(data, Map.class);
             if (build.get("number").equals(ver)) {

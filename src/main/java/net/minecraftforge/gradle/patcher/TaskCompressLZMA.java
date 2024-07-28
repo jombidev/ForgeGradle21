@@ -21,10 +21,9 @@ package net.minecraftforge.gradle.patcher;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 import lzma.streams.LzmaOutputStream;
 import net.minecraftforge.gradle.util.caching.Cached;
@@ -52,8 +51,8 @@ class TaskCompressLZMA extends CachedTask {
 
     @TaskAction
     public void doTask() throws IOException {
-        final BufferedInputStream in = new BufferedInputStream(new FileInputStream(getInputFile()));
-        final OutputStream out = new LzmaOutputStream.Builder(new FileOutputStream(getOutputFile()))
+        final BufferedInputStream in = new BufferedInputStream(Files.newInputStream(getInputFile().toPath()));
+        final OutputStream out = new LzmaOutputStream.Builder(Files.newOutputStream(getOutputFile().toPath()))
                 .useEndMarkerMode(true)
                 .build();
 

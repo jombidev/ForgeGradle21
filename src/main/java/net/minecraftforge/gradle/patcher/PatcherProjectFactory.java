@@ -36,7 +36,6 @@ public class PatcherProjectFactory implements NamedDomainObjectFactory<PatcherPr
             throw new GradleConfigurationException("You cannot create a project with the name '" + name + "'");
         }
 
-        PatcherProject proj = new PatcherProject(name, plugin);
-        return proj;
+        return new PatcherProject(name, plugin);
     }
 }

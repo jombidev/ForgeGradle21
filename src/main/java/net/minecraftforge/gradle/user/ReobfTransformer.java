@@ -25,7 +25,7 @@ public interface ReobfTransformer extends Serializable {
 
     /**
      * Called for each class to be reobfuscated
-     *
+     * <p>
      * <em>Don't use {@link org.objectweb.asm.ClassReader#EXPAND_FRAMES EXPAND_FRAMES}</em>
      *
      * @param data The class bytes

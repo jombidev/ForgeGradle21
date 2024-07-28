@@ -15,12 +15,13 @@ public class OSRule {
                     return false;
                 }
             } catch (Throwable e) {
+                //
             }
         }
         return true;
     }
 
-    public class OSInfo {
+    public static class OSInfo {
         private OS name;
         private String version;
     }

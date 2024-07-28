@@ -135,9 +135,7 @@ public class GLConstantFixer {
             constantMatcher.appendTail(innerOut);
 
             // replace the final line.
-            if (fullCall != null) {
-                rootMatch.appendReplacement(out, Matcher.quoteReplacement(innerOut.toString()));
-            }
+            rootMatch.appendReplacement(out, Matcher.quoteReplacement(innerOut.toString()));
         }
         rootMatch.appendTail(out);
 

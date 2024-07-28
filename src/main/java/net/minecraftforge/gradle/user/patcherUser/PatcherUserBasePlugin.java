@@ -28,7 +28,7 @@ import net.minecraftforge.gradle.tasks.RemapSources;
 import net.minecraftforge.gradle.user.TaskSingleReobf;
 import net.minecraftforge.gradle.user.UserBaseExtension;
 import net.minecraftforge.gradle.user.UserBasePlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSet;
 
 import java.io.File;
@@ -45,7 +45,7 @@ public abstract class PatcherUserBasePlugin<T extends UserBaseExtension> extends
         String local = DIR_LOCAL_CACHE + "/" + REPLACE_API_NAME + "%s-" + REPLACE_API_VERSION + "-PROJECT(" + project.getName() + ")";
 
         // grab ATs from resource dirs
-        JavaPluginConvention javaConv = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
+        JavaPluginExtension javaConv = project.getExtensions().getByType(JavaPluginExtension.class);
         SourceSet main = javaConv.getSourceSets().getByName("main");
         SourceSet api = javaConv.getSourceSets().getByName("api");
 
