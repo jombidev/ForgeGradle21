@@ -58,7 +58,6 @@ public class DeobfuscateJar extends CachedTask {
     @Optional
     private Object methodCsv;
 
-    @InputFile
     private Object inJar;
 
     @InputFile
@@ -324,7 +323,7 @@ public class DeobfuscateJar extends CachedTask {
         this.failOnAtError = failOnAtError;
     }
 
-    @Internal
+    @InputFile
     public File getInJar() {
         return getProject().file(inJar);
     }
