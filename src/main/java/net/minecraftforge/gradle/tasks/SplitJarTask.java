@@ -35,10 +35,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
@@ -157,11 +154,13 @@ public class SplitJarTask extends CachedTask implements PatternFilterable {
         return pattern.exclude(arg0);
     }
 
+    @Internal
     @Override
     public Set<String> getExcludes() {
         return pattern.getExcludes();
     }
 
+    @Internal
     @Override
     public Set<String> getIncludes() {
         return pattern.getIncludes();
