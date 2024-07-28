@@ -130,7 +130,7 @@ public class JsonFactory {
         FileReader reader = new FileReader(json);
         Map<String, MCInjectorStruct> ret = new LinkedHashMap<>();
 
-        JsonObject object = (JsonObject) JsonParser.parseReader(reader);
+        JsonObject object = new JsonParser().parse(reader).getAsJsonObject();
         reader.close();
 
         for (Entry<String, JsonElement> entry : object.entrySet()) {
