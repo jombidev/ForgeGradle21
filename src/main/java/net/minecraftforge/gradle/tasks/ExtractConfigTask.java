@@ -153,6 +153,7 @@ public class ExtractConfigTask extends CachedTask implements PatternFilterable {
         return patternSet.getExcludes();
     }
 
+    @Internal
     @Override
     public Set<String> getIncludes() {
         return patternSet.getIncludes();
