@@ -286,15 +286,15 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 }
             });
             getAssetsIndex.setFile(delayedFile(JSON_ASSET_INDEX));
-            getAssetsIndex.setDieWithError(false);
+            getAssetsIndex.setDieWithError(true);
             getAssetsIndex.dependsOn(getVersionJson);
         }
 
         DownloadAssetsTask getAssets = makeTask(TASK_DL_ASSETS, DownloadAssetsTask.class);
         {
+            getAssets.dependsOn(getAssetsIndex);
             getAssets.setAssetsDir(delayedFile(DIR_ASSETS));
             getAssets.setAssetsIndex(delayedFile(JSON_ASSET_INDEX));
-            getAssets.dependsOn(getAssetsIndex);
         }
 
         Download dlClient = makeTask(TASK_DL_CLIENT, Download.class);

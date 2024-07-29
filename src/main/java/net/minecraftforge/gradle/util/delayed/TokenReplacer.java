@@ -45,7 +45,6 @@ public class TokenReplacer implements Serializable {
         LOGGER.debug("Resolving: {}", input);
 
         StringBuilder builder = new StringBuilder(input);
-        boolean saveOutCache = true;
 
         int index = 0;
         int endIndex;
@@ -64,10 +63,7 @@ public class TokenReplacer implements Serializable {
             String key = builder.substring(index + 1, endIndex);// skip the {}
             String repl = provider.get(key);
             if (repl == null) {
-                index = endIndex;// skip this {} token, we dont have the necessray info for it.
-                saveOutCache = false;
-
-                // eventually remove.. or keep forever?
+                // eventually remove... or keep forever?
                 throw new RuntimeException("MISSING REPLACEMENT DATA FOR " + key);
             } else {
                 // replace the {} too
@@ -79,8 +75,7 @@ public class TokenReplacer implements Serializable {
 
         String out = builder.toString();
 
-        if (saveOutCache)
-            outCache = out;
+        outCache = out;
 
         LOGGER.debug("Resolved: {}", out);
 
