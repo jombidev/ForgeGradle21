@@ -256,7 +256,8 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
                         Files.write(sb.toString().getBytes(Charsets.UTF_8), json);
 
-                        // grab the AssetIndex if it isnt already there
+                        // grab the AssetIndex if it isn't already there
+                        project.getLogger().info("hasAssetIndex: {}", replacer.hasReplacement(REPLACE_ASSET_INDEX));
                         if (!replacer.hasReplacement(REPLACE_ASSET_INDEX)) {
                             project.getLogger().info("ASSET INDEX GET!!!!");
                             parseAndStoreVersion(json, json.getParentFile());
