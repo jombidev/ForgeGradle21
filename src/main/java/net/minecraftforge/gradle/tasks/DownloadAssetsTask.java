@@ -62,11 +62,12 @@ public class DownloadAssetsTask extends DefaultTask {
 
     @TaskAction
     public void doTask() throws IOException, InterruptedException {
+        getLogger().info("ASSET DIR {}", assetsDir);
         File outDir = new File(getAssetsDir(), "objects");
         if (!outDir.exists() || !outDir.isDirectory()) {
             outDir.mkdirs();
         }
-
+        getLogger().info("ASSET INDEX {}", assetIndex);
         File indexFile = getAssetsIndex();
         AssetIndex index = JsonFactory.loadAssetsIndex(indexFile);
 
