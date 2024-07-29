@@ -570,6 +570,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
         // actual dependencies
         if (project.getConfigurations().getByName(CONFIG_MC_DEPS).getState() == State.UNRESOLVED) {
+            project.getLogger().info("version.getLibraries(): {}", version.getLibraries());
             for (net.minecraftforge.gradle.util.json.version.Library lib : version.getLibraries()) {
                 if (lib.natives == null) {
                     String configName = CONFIG_MC_DEPS;
