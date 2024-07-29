@@ -258,6 +258,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
                         // grab the AssetIndex if it isnt already there
                         if (!replacer.hasReplacement(REPLACE_ASSET_INDEX)) {
+                            project.getLogger().info("ASSET INDEX GET!!!!");
                             parseAndStoreVersion(json, json.getParentFile());
                         }
                     } catch (IOException t) {
@@ -279,6 +280,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
         EtagDownloadTask getAssetsIndex = makeTask(TASK_DL_ASSET_INDEX, EtagDownloadTask.class);
         {
+            getAssetsIndex.dependsOn(getVersionJson);
             getAssetsIndex.setUrl(new Closure<String>(BasePlugin.class) {
                 @Override
                 public String call() {
@@ -287,7 +289,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
             });
             getAssetsIndex.setFile(delayedFile(JSON_ASSET_INDEX));
             getAssetsIndex.setDieWithError(true);
-            getAssetsIndex.dependsOn(getVersionJson);
         }
 
         DownloadAssetsTask getAssets = makeTask(TASK_DL_ASSETS, DownloadAssetsTask.class);
@@ -562,6 +563,9 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 //            Throwables.throwIfUnchecked(e);
         }
 
+        // set asset index
+        replacer.putReplacement(REPLACE_ASSET_INDEX, version.assetIndex.id);
+
         // apply the dep info.
         DependencyHandler handler = project.getDependencies();
 
@@ -585,9 +589,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 if (lib.natives != null) handler.add(CONFIG_NATIVES, lib.getArtifactName());
             }
         } else project.getLogger().debug("RESOLVED: " + CONFIG_NATIVES);
-
-        // set asset index
-        replacer.putReplacement(REPLACE_ASSET_INDEX, version.assetIndex.id);
 
         this.mcVersionJson = version;
 
