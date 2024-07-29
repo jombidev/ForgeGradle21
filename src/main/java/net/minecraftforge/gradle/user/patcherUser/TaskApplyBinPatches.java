@@ -74,7 +74,7 @@ public class TaskApplyBinPatches extends CachedTask {
 
         final HashSet<String> entries = new HashSet<>();
 
-        try (ZipFile in = new ZipFile(getInJar()); ZipInputStream classesIn = new ZipInputStream(Files.newInputStream(getClassJar().toPath())); ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(Files.newOutputStream(getOutJar().toPath())))) {
+        try (ZipFile in = new ZipFile(getInJar()); ZipInputStream classesIn = new ZipInputStream(Files.newInputStream(getClassesJar().toPath())); ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(Files.newOutputStream(getOutJar().toPath())))) {
             // DO PATCHES
             log("Patching Class:");
             for (ZipEntry e : Collections.list(in.entries())) {
@@ -120,7 +120,7 @@ public class TaskApplyBinPatches extends CachedTask {
                 entries.add(entry.getName());
             }
 
-            getProject().zipTree(getResourceJar()).visit(new FileVisitor() {
+            getProject().zipTree(getResourcesJar()).visit(new FileVisitor() {
                 @Override
                 public void visitDir(FileVisitDetails dirDetails) {
                 }
@@ -233,7 +233,7 @@ public class TaskApplyBinPatches extends CachedTask {
         this.patches = patchesJar;
     }
 
-    public File getClassJar() {
+    public File getClassesJar() {
         return getProject().file(classesJar);
     }
 
@@ -241,7 +241,7 @@ public class TaskApplyBinPatches extends CachedTask {
         this.classesJar = extraJar;
     }
 
-    public File getResourceJar() {
+    public File getResourcesJar() {
         return getProject().file(resourcesJar);
     }
 
