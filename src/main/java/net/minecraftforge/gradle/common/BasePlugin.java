@@ -257,9 +257,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                         Files.write(sb.toString().getBytes(Charsets.UTF_8), json);
 
                         // grab the AssetIndex if it isn't already there
-                        project.getLogger().info("hasAssetIndex: {}", replacer.hasReplacement(REPLACE_ASSET_INDEX));
                         if (!replacer.hasReplacement(REPLACE_ASSET_INDEX)) {
-                            project.getLogger().info("ASSET INDEX GET!!!!");
                             parseAndStoreVersion(json, json.getParentFile());
                         }
                     } catch (IOException t) {
@@ -609,7 +607,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
     });
     private final LoadingCache<String, DelayedFile> fileCache = CacheBuilder.newBuilder().weakValues().build(new CacheLoader<String, DelayedFile>() {
         public DelayedFile load(String key) {
-            project.getLogger().info("Replacer for key {}: {}", key, replacerCache.getUnchecked(key));
             return new DelayedFile(CacheLoader.class, project, replacerCache.getUnchecked(key));
         }
     });
