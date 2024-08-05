@@ -97,13 +97,13 @@ public class EtagDownloadTask extends DefaultTask {
 
                     break;
                 default: // another code?? uh..
-                    error("Unexpected reponse " + con.getResponseCode() + " from " + url);
+                    error("Unexpected response " + con.getResponseCode() + " from " + url);
                     break;
             }
 
             con.disconnect();
         } catch (Throwable e) {
-            // just in case people dont have internet at the moment.
+            // just in case people don't have internet at the moment.
             error(e.getLocalizedMessage());
         }
     }

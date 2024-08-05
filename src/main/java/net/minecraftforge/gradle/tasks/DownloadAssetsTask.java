@@ -66,7 +66,6 @@ public class DownloadAssetsTask extends DefaultTask {
         if (!outDir.exists() || !outDir.isDirectory()) {
             outDir.mkdirs();
         }
-
         File indexFile = getAssetsIndex();
         AssetIndex index = JsonFactory.loadAssetsIndex(indexFile);
 
