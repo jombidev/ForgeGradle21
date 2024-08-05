@@ -109,7 +109,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         }
 
         // extension objects
-        if (project.getExtensions().findByName(EXT_NAME_MC) == null) {
+        {
             Type t = getClass().getGenericSuperclass();
 
             while (t instanceof Class) {
@@ -186,6 +186,8 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         etagFile = new File(jsonCache.getAbsolutePath() + ".etag");
         mcManifest = JsonFactory.GSON.fromJson(getWithEtag(URL_MC_MANIFEST, jsonCache, etagFile), new TypeToken<Map<String, ManifestVersion>>() {
         }.getType());
+
+        project.getLogger().info("Downloaded: RemoteJson");
     }
 
     protected void afterEvaluate() {
@@ -256,7 +258,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
                         Files.write(sb.toString().getBytes(Charsets.UTF_8), json);
 
-                        // grab the AssetIndex if it isn't already there
+                        // grab the AssetIndex if it isnt already there
                         if (!replacer.hasReplacement(REPLACE_ASSET_INDEX)) {
                             parseAndStoreVersion(json, json.getParentFile());
                         }
@@ -279,7 +281,6 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 
         EtagDownloadTask getAssetsIndex = makeTask(TASK_DL_ASSET_INDEX, EtagDownloadTask.class);
         {
-            getAssetsIndex.dependsOn(getVersionJson);
             getAssetsIndex.setUrl(new Closure<String>(BasePlugin.class) {
                 @Override
                 public String call() {
@@ -287,14 +288,15 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 }
             });
             getAssetsIndex.setFile(delayedFile(JSON_ASSET_INDEX));
-            getAssetsIndex.setDieWithError(true);
+            getAssetsIndex.setDieWithError(false);
+            getAssetsIndex.dependsOn(getVersionJson);
         }
 
         DownloadAssetsTask getAssets = makeTask(TASK_DL_ASSETS, DownloadAssetsTask.class);
         {
-            getAssets.dependsOn(getAssetsIndex);
             getAssets.setAssetsDir(delayedFile(DIR_ASSETS));
             getAssets.setAssetsIndex(delayedFile(JSON_ASSET_INDEX));
+            getAssets.dependsOn(getAssetsIndex);
         }
 
         Download dlClient = makeTask(TASK_DL_CLIENT, Download.class);
@@ -562,15 +564,11 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
 //            Throwables.throwIfUnchecked(e);
         }
 
-        // set asset index
-        replacer.putReplacement(REPLACE_ASSET_INDEX, version.assetIndex.id);
-
         // apply the dep info.
         DependencyHandler handler = project.getDependencies();
 
         // actual dependencies
         if (project.getConfigurations().getByName(CONFIG_MC_DEPS).getState() == State.UNRESOLVED) {
-            project.getLogger().info("version.getLibraries(): {}", version.getLibraries());
             for (net.minecraftforge.gradle.util.json.version.Library lib : version.getLibraries()) {
                 if (lib.natives == null) {
                     String configName = CONFIG_MC_DEPS;
@@ -589,6 +587,9 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
                 if (lib.natives != null) handler.add(CONFIG_NATIVES, lib.getArtifactName());
             }
         } else project.getLogger().debug("RESOLVED: " + CONFIG_NATIVES);
+
+        // set asset index
+        replacer.putReplacement(REPLACE_ASSET_INDEX, version.assetIndex.id);
 
         this.mcVersionJson = version;
 
