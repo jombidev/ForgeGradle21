@@ -109,7 +109,7 @@ public abstract class BasePlugin<K extends BaseExtension> implements Plugin<Proj
         }
 
         // extension objects
-        {
+        if (project.getExtensions().findByName(EXT_NAME_MC) == null) {
             Type t = getClass().getGenericSuperclass();
 
             while (t instanceof Class) {
